@@ -165,18 +165,15 @@ trait ParserGenerator {
   private def genClass(chars: Set[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
-    val res = freshVar("res")
     val char = freshVar("char")
 
     val cs = chars.map{ escape }.mkString(",")
     val err = chars.map{ escapeDoubleQuote }.mkString(",")
 
     buf += s"val $pos = mark"
-    buf += s"val $res = for{"
-    buf += s"$char <- expect($cs)"
-    buf += s""" } yield PLeaf($char.toString) """
-
-    buf += s"$res.recoverWith{ case p: ParseError =>"
+    buf += s"expect($cs)"
+    buf += s".map{ $char => PLeaf($char.toString)}"
+    buf += s".recoverWith{ case p: ParseError =>"
     buf += s"reset($pos)"
     buf += s""" Failure( p ~ ParseFailed("Expected one of $err",$pos) ) """
     buf += s"}"
@@ -207,9 +204,14 @@ trait ParserGenerator {
     buf += s"val $pos = mark"
     buf += s"val $res = for{"
     astsNamed.foreach{ case (name,ast) =>
-      buf += s"$name <- {"
-      buf ++= genAst(name,ast)
-      buf += "}"
+      ast match {
+        case Var(ident) =>
+          buf += s"$name <- $ident()"
+        case _ =>
+          buf += s"$name <- {"
+          buf ++= genAst(name,ast)
+          buf += "}"
+      }
     }
     buf += s""" }  yield PBranch("$name",Seq( $names )) """
 

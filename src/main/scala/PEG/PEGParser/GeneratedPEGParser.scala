@@ -22,13 +22,7 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
           Failure(p ~ ParseFailed("expected '.'", pos_5))
         }
       }
-      catPart_4 <- {
-        val pos_8 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_8)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_8))
-        }
-      }
+      catPart_4 <- Spacing()
     } yield PBranch("DOT", Seq(catPart_3, catPart_4))
     res_2.recoverWith { case p: ParseError =>
       reset(pos0_1)
@@ -38,415 +32,337 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def STAR(): Try[PTree] = {
-    val pos0_9 = mark
-    val res_10 = for {
-      catPart_11 <- {
-        val pos_13 = mark
-        val res_14 = for {
-          char_part_15 <- expect('*')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_15.toString)))
-        res_14.recoverWith { case p: ParseError =>
-          reset(pos_13)
-          Failure(p ~ ParseFailed("expected '*'", pos_13))
+    val pos0_8 = mark
+    val res_9 = for {
+      catPart_10 <- {
+        val pos_12 = mark
+        val res_13 = for {
+          char_part_14 <- expect('*')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_14.toString)))
+        res_13.recoverWith { case p: ParseError =>
+          reset(pos_12)
+          Failure(p ~ ParseFailed("expected '*'", pos_12))
         }
       }
-      catPart_12 <- {
-        val pos_16 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_16)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_16))
-        }
-      }
-    } yield PBranch("STAR", Seq(catPart_11, catPart_12))
-    res_10.recoverWith { case p: ParseError =>
-      reset(pos0_9)
+      catPart_11 <- Spacing()
+    } yield PBranch("STAR", Seq(catPart_10, catPart_11))
+    res_9.recoverWith { case p: ParseError =>
+      reset(pos0_8)
       Failure(p)
     }
   }
 
 
   def PLUS(): Try[PTree] = {
-    val pos0_17 = mark
-    val res_18 = for {
-      catPart_19 <- {
-        val pos_21 = mark
-        val res_22 = for {
-          char_part_23 <- expect('+')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_23.toString)))
-        res_22.recoverWith { case p: ParseError =>
-          reset(pos_21)
-          Failure(p ~ ParseFailed("expected '+'", pos_21))
+    val pos0_15 = mark
+    val res_16 = for {
+      catPart_17 <- {
+        val pos_19 = mark
+        val res_20 = for {
+          char_part_21 <- expect('+')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_21.toString)))
+        res_20.recoverWith { case p: ParseError =>
+          reset(pos_19)
+          Failure(p ~ ParseFailed("expected '+'", pos_19))
         }
       }
-      catPart_20 <- {
-        val pos_24 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_24)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_24))
-        }
-      }
-    } yield PBranch("PLUS", Seq(catPart_19, catPart_20))
-    res_18.recoverWith { case p: ParseError =>
-      reset(pos0_17)
+      catPart_18 <- Spacing()
+    } yield PBranch("PLUS", Seq(catPart_17, catPart_18))
+    res_16.recoverWith { case p: ParseError =>
+      reset(pos0_15)
       Failure(p)
     }
   }
 
 
   def Literal(): Try[PTree] = {
-    val pos_25 = mark
-    val res_26 = {
-      val pos0_28 = mark
-      val res_29 = for {
-        catPart_30 <- {
-          val pos_34 = mark
-          val res_35 = for {
-            char_36 <- expect('\'')
-          } yield PLeaf(char_36.toString)
-          res_35.recoverWith { case p: ParseError =>
-            reset(pos_34)
-            Failure(p ~ ParseFailed("Expected one of '\''", pos_34))
-          }
+    val pos_22 = mark
+    val res_23 = {
+      val pos0_25 = mark
+      val res_26 = for {
+        catPart_27 <- {
+          val pos_31 = mark
+          expect('\'')
+            .map { char_32 => PLeaf(char_32.toString) }
+            .recoverWith { case p: ParseError =>
+              reset(pos_31)
+              Failure(p ~ ParseFailed("Expected one of '\''", pos_31))
+            }
         }
-        catPart_31 <- {
-          var parts_37 = ArrayBuffer.empty[PTree]
-          var pos_38 = mark
-          var res_39 = {
-            val pos0_40 = mark
-            val res_41 = for {
-              catPart_42 <- {
-                val pos_44 = mark
-                val res_45 = {
-                  val pos_46 = mark
-                  val res_47 = for {
-                    char_48 <- expect('\'')
-                  } yield PLeaf(char_48.toString)
-                  res_47.recoverWith { case p: ParseError =>
-                    reset(pos_46)
-                    Failure(p ~ ParseFailed("Expected one of '\''", pos_46))
-                  }
+        catPart_28 <- {
+          var parts_33 = ArrayBuffer.empty[PTree]
+          var pos_34 = mark
+          var res_35 = {
+            val pos0_36 = mark
+            val res_37 = for {
+              catPart_38 <- {
+                val pos_40 = mark
+                val res_41 = {
+                  val pos_42 = mark
+                  expect('\'')
+                    .map { char_43 => PLeaf(char_43.toString) }
+                    .recoverWith { case p: ParseError =>
+                      reset(pos_42)
+                      Failure(p ~ ParseFailed("Expected one of '\''", pos_42))
+                    }
                 }
-                reset(pos_44)
-                if (res_45.isSuccess) Failure(ParseFailed("Neglook failed", pos_44))
+                reset(pos_40)
+                if (res_41.isSuccess) Failure(ParseFailed("Neglook failed", pos_40))
                 else {
                   Try(PEmpty)
                 }
               }
-              catPart_43 <- {
-                val pos_49 = mark
-                Char().recoverWith { case p: ParseError =>
-                  reset(pos_49)
-                  Failure(p ~ ParseFailed("expected Var 'Char'", pos_49))
-                }
-              }
-            } yield PBranch("catPart_31", Seq(catPart_42, catPart_43))
-            res_41.recoverWith { case p: ParseError =>
-              reset(pos0_40)
+              catPart_39 <- Char()
+            } yield PBranch("catPart_28", Seq(catPart_38, catPart_39))
+            res_37.recoverWith { case p: ParseError =>
+              reset(pos0_36)
               Failure(p)
             }
           }
-          res_39.recover { _ => reset(pos_38) }
-          while (res_39.isSuccess) {
-            parts_37 += res_39.get
-            pos_38 = mark
-            res_39 = {
-              val pos0_50 = mark
-              val res_51 = for {
-                catPart_52 <- {
-                  val pos_54 = mark
-                  val res_55 = {
-                    val pos_56 = mark
-                    val res_57 = for {
-                      char_58 <- expect('\'')
-                    } yield PLeaf(char_58.toString)
-                    res_57.recoverWith { case p: ParseError =>
-                      reset(pos_56)
-                      Failure(p ~ ParseFailed("Expected one of '\''", pos_56))
-                    }
+          res_35.recover { _ => reset(pos_34) }
+          while (res_35.isSuccess) {
+            parts_33 += res_35.get
+            pos_34 = mark
+            res_35 = {
+              val pos0_44 = mark
+              val res_45 = for {
+                catPart_46 <- {
+                  val pos_48 = mark
+                  val res_49 = {
+                    val pos_50 = mark
+                    expect('\'')
+                      .map { char_51 => PLeaf(char_51.toString) }
+                      .recoverWith { case p: ParseError =>
+                        reset(pos_50)
+                        Failure(p ~ ParseFailed("Expected one of '\''", pos_50))
+                      }
                   }
-                  reset(pos_54)
-                  if (res_55.isSuccess) Failure(ParseFailed("Neglook failed", pos_54))
+                  reset(pos_48)
+                  if (res_49.isSuccess) Failure(ParseFailed("Neglook failed", pos_48))
                   else {
                     Try(PEmpty)
                   }
                 }
-                catPart_53 <- {
-                  val pos_59 = mark
-                  Char().recoverWith { case p: ParseError =>
-                    reset(pos_59)
-                    Failure(p ~ ParseFailed("expected Var 'Char'", pos_59))
-                  }
-                }
-              } yield PBranch("catPart_31", Seq(catPart_52, catPart_53))
-              res_51.recoverWith { case p: ParseError =>
-                reset(pos0_50)
+                catPart_47 <- Char()
+              } yield PBranch("catPart_28", Seq(catPart_46, catPart_47))
+              res_45.recoverWith { case p: ParseError =>
+                reset(pos0_44)
                 Failure(p)
               }
             }
-            res_39.recover { _ => reset(pos_38) }
+            res_35.recover { _ => reset(pos_34) }
           }
-          Try(PBranch("catPart_31", parts_37.toSeq))
+          Try(PBranch("catPart_28", parts_33.toSeq))
         }
-        catPart_32 <- {
-          val pos_60 = mark
-          val res_61 = for {
-            char_62 <- expect('\'')
-          } yield PLeaf(char_62.toString)
-          res_61.recoverWith { case p: ParseError =>
-            reset(pos_60)
-            Failure(p ~ ParseFailed("Expected one of '\''", pos_60))
-          }
+        catPart_29 <- {
+          val pos_52 = mark
+          expect('\'')
+            .map { char_53 => PLeaf(char_53.toString) }
+            .recoverWith { case p: ParseError =>
+              reset(pos_52)
+              Failure(p ~ ParseFailed("Expected one of '\''", pos_52))
+            }
         }
-        catPart_33 <- {
-          val pos_63 = mark
-          Spacing().recoverWith { case p: ParseError =>
-            reset(pos_63)
-            Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_63))
-          }
-        }
-      } yield PBranch("Literal", Seq(catPart_30, catPart_31, catPart_32, catPart_33))
-      res_29.recoverWith { case p: ParseError =>
-        reset(pos0_28)
+        catPart_30 <- Spacing()
+      } yield PBranch("Literal", Seq(catPart_27, catPart_28, catPart_29, catPart_30))
+      res_26.recoverWith { case p: ParseError =>
+        reset(pos0_25)
         Failure(p)
       }
     }
-    res_26.recoverWith { case err_27: ParseError =>
-      reset(pos_25)
-      val res_64 = {
-        val pos0_66 = mark
-        val res_67 = for {
-          catPart_68 <- {
-            val pos_72 = mark
-            val res_73 = for {
-              char_74 <- expect('"')
-            } yield PLeaf(char_74.toString)
-            res_73.recoverWith { case p: ParseError =>
-              reset(pos_72)
-              Failure(p ~ ParseFailed("Expected one of \"", pos_72))
-            }
+    res_23.recoverWith { case err_24: ParseError =>
+      reset(pos_22)
+      val res_54 = {
+        val pos0_56 = mark
+        val res_57 = for {
+          catPart_58 <- {
+            val pos_62 = mark
+            expect('"')
+              .map { char_63 => PLeaf(char_63.toString) }
+              .recoverWith { case p: ParseError =>
+                reset(pos_62)
+                Failure(p ~ ParseFailed("Expected one of \"", pos_62))
+              }
           }
-          catPart_69 <- {
-            var parts_75 = ArrayBuffer.empty[PTree]
-            var pos_76 = mark
-            var res_77 = {
-              val pos0_78 = mark
-              val res_79 = for {
-                catPart_80 <- {
-                  val pos_82 = mark
-                  val res_83 = {
-                    val pos_84 = mark
-                    val res_85 = for {
-                      char_86 <- expect('"')
-                    } yield PLeaf(char_86.toString)
-                    res_85.recoverWith { case p: ParseError =>
-                      reset(pos_84)
-                      Failure(p ~ ParseFailed("Expected one of \"", pos_84))
-                    }
+          catPart_59 <- {
+            var parts_64 = ArrayBuffer.empty[PTree]
+            var pos_65 = mark
+            var res_66 = {
+              val pos0_67 = mark
+              val res_68 = for {
+                catPart_69 <- {
+                  val pos_71 = mark
+                  val res_72 = {
+                    val pos_73 = mark
+                    expect('"')
+                      .map { char_74 => PLeaf(char_74.toString) }
+                      .recoverWith { case p: ParseError =>
+                        reset(pos_73)
+                        Failure(p ~ ParseFailed("Expected one of \"", pos_73))
+                      }
                   }
-                  reset(pos_82)
-                  if (res_83.isSuccess) Failure(ParseFailed("Neglook failed", pos_82))
+                  reset(pos_71)
+                  if (res_72.isSuccess) Failure(ParseFailed("Neglook failed", pos_71))
                   else {
                     Try(PEmpty)
                   }
                 }
-                catPart_81 <- {
-                  val pos_87 = mark
-                  Char().recoverWith { case p: ParseError =>
-                    reset(pos_87)
-                    Failure(p ~ ParseFailed("expected Var 'Char'", pos_87))
-                  }
-                }
-              } yield PBranch("catPart_69", Seq(catPart_80, catPart_81))
-              res_79.recoverWith { case p: ParseError =>
-                reset(pos0_78)
+                catPart_70 <- Char()
+              } yield PBranch("catPart_59", Seq(catPart_69, catPart_70))
+              res_68.recoverWith { case p: ParseError =>
+                reset(pos0_67)
                 Failure(p)
               }
             }
-            res_77.recover { _ => reset(pos_76) }
-            while (res_77.isSuccess) {
-              parts_75 += res_77.get
-              pos_76 = mark
-              res_77 = {
-                val pos0_88 = mark
-                val res_89 = for {
-                  catPart_90 <- {
-                    val pos_92 = mark
-                    val res_93 = {
-                      val pos_94 = mark
-                      val res_95 = for {
-                        char_96 <- expect('"')
-                      } yield PLeaf(char_96.toString)
-                      res_95.recoverWith { case p: ParseError =>
-                        reset(pos_94)
-                        Failure(p ~ ParseFailed("Expected one of \"", pos_94))
-                      }
+            res_66.recover { _ => reset(pos_65) }
+            while (res_66.isSuccess) {
+              parts_64 += res_66.get
+              pos_65 = mark
+              res_66 = {
+                val pos0_75 = mark
+                val res_76 = for {
+                  catPart_77 <- {
+                    val pos_79 = mark
+                    val res_80 = {
+                      val pos_81 = mark
+                      expect('"')
+                        .map { char_82 => PLeaf(char_82.toString) }
+                        .recoverWith { case p: ParseError =>
+                          reset(pos_81)
+                          Failure(p ~ ParseFailed("Expected one of \"", pos_81))
+                        }
                     }
-                    reset(pos_92)
-                    if (res_93.isSuccess) Failure(ParseFailed("Neglook failed", pos_92))
+                    reset(pos_79)
+                    if (res_80.isSuccess) Failure(ParseFailed("Neglook failed", pos_79))
                     else {
                       Try(PEmpty)
                     }
                   }
-                  catPart_91 <- {
-                    val pos_97 = mark
-                    Char().recoverWith { case p: ParseError =>
-                      reset(pos_97)
-                      Failure(p ~ ParseFailed("expected Var 'Char'", pos_97))
-                    }
-                  }
-                } yield PBranch("catPart_69", Seq(catPart_90, catPart_91))
-                res_89.recoverWith { case p: ParseError =>
-                  reset(pos0_88)
+                  catPart_78 <- Char()
+                } yield PBranch("catPart_59", Seq(catPart_77, catPart_78))
+                res_76.recoverWith { case p: ParseError =>
+                  reset(pos0_75)
                   Failure(p)
                 }
               }
-              res_77.recover { _ => reset(pos_76) }
+              res_66.recover { _ => reset(pos_65) }
             }
-            Try(PBranch("catPart_69", parts_75.toSeq))
+            Try(PBranch("catPart_59", parts_64.toSeq))
           }
-          catPart_70 <- {
-            val pos_98 = mark
-            val res_99 = for {
-              char_100 <- expect('"')
-            } yield PLeaf(char_100.toString)
-            res_99.recoverWith { case p: ParseError =>
-              reset(pos_98)
-              Failure(p ~ ParseFailed("Expected one of \"", pos_98))
-            }
+          catPart_60 <- {
+            val pos_83 = mark
+            expect('"')
+              .map { char_84 => PLeaf(char_84.toString) }
+              .recoverWith { case p: ParseError =>
+                reset(pos_83)
+                Failure(p ~ ParseFailed("Expected one of \"", pos_83))
+              }
           }
-          catPart_71 <- {
-            val pos_101 = mark
-            Spacing().recoverWith { case p: ParseError =>
-              reset(pos_101)
-              Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_101))
-            }
-          }
-        } yield PBranch("Literal", Seq(catPart_68, catPart_69, catPart_70, catPart_71))
-        res_67.recoverWith { case p: ParseError =>
-          reset(pos0_66)
+          catPart_61 <- Spacing()
+        } yield PBranch("Literal", Seq(catPart_58, catPart_59, catPart_60, catPart_61))
+        res_57.recoverWith { case p: ParseError =>
+          reset(pos0_56)
           Failure(p)
         }
       }
-      res_64.recoverWith { case err_65: ParseError =>
-        reset(pos_25)
-        val res_102 = {
-          val pos0_104 = mark
-          val res_105 = for {
-            catPart_106 <- {
-              val pos_110 = mark
-              val res_111 = for {
-                char_112 <- expect('`')
-              } yield PLeaf(char_112.toString)
-              res_111.recoverWith { case p: ParseError =>
-                reset(pos_110)
-                Failure(p ~ ParseFailed("Expected one of '`'", pos_110))
-              }
+      res_54.recoverWith { case err_55: ParseError =>
+        reset(pos_22)
+        val res_85 = {
+          val pos0_87 = mark
+          val res_88 = for {
+            catPart_89 <- {
+              val pos_93 = mark
+              expect('`')
+                .map { char_94 => PLeaf(char_94.toString) }
+                .recoverWith { case p: ParseError =>
+                  reset(pos_93)
+                  Failure(p ~ ParseFailed("Expected one of '`'", pos_93))
+                }
             }
-            catPart_107 <- {
-              var parts_113 = ArrayBuffer.empty[PTree]
-              var pos_114 = mark
-              var res_115 = {
-                val pos0_116 = mark
-                val res_117 = for {
-                  catPart_118 <- {
-                    val pos_120 = mark
-                    val res_121 = {
-                      val pos_122 = mark
-                      val res_123 = for {
-                        char_124 <- expect('`')
-                      } yield PLeaf(char_124.toString)
-                      res_123.recoverWith { case p: ParseError =>
-                        reset(pos_122)
-                        Failure(p ~ ParseFailed("Expected one of '`'", pos_122))
-                      }
+            catPart_90 <- {
+              var parts_95 = ArrayBuffer.empty[PTree]
+              var pos_96 = mark
+              var res_97 = {
+                val pos0_98 = mark
+                val res_99 = for {
+                  catPart_100 <- {
+                    val pos_102 = mark
+                    val res_103 = {
+                      val pos_104 = mark
+                      expect('`')
+                        .map { char_105 => PLeaf(char_105.toString) }
+                        .recoverWith { case p: ParseError =>
+                          reset(pos_104)
+                          Failure(p ~ ParseFailed("Expected one of '`'", pos_104))
+                        }
                     }
-                    reset(pos_120)
-                    if (res_121.isSuccess) Failure(ParseFailed("Neglook failed", pos_120))
+                    reset(pos_102)
+                    if (res_103.isSuccess) Failure(ParseFailed("Neglook failed", pos_102))
                     else {
                       Try(PEmpty)
                     }
                   }
-                  catPart_119 <- {
-                    val pos_125 = mark
-                    Char().recoverWith { case p: ParseError =>
-                      reset(pos_125)
-                      Failure(p ~ ParseFailed("expected Var 'Char'", pos_125))
-                    }
-                  }
-                } yield PBranch("catPart_107", Seq(catPart_118, catPart_119))
-                res_117.recoverWith { case p: ParseError =>
-                  reset(pos0_116)
+                  catPart_101 <- Char()
+                } yield PBranch("catPart_90", Seq(catPart_100, catPart_101))
+                res_99.recoverWith { case p: ParseError =>
+                  reset(pos0_98)
                   Failure(p)
                 }
               }
-              res_115.recover { _ => reset(pos_114) }
-              while (res_115.isSuccess) {
-                parts_113 += res_115.get
-                pos_114 = mark
-                res_115 = {
-                  val pos0_126 = mark
-                  val res_127 = for {
-                    catPart_128 <- {
-                      val pos_130 = mark
-                      val res_131 = {
-                        val pos_132 = mark
-                        val res_133 = for {
-                          char_134 <- expect('`')
-                        } yield PLeaf(char_134.toString)
-                        res_133.recoverWith { case p: ParseError =>
-                          reset(pos_132)
-                          Failure(p ~ ParseFailed("Expected one of '`'", pos_132))
-                        }
+              res_97.recover { _ => reset(pos_96) }
+              while (res_97.isSuccess) {
+                parts_95 += res_97.get
+                pos_96 = mark
+                res_97 = {
+                  val pos0_106 = mark
+                  val res_107 = for {
+                    catPart_108 <- {
+                      val pos_110 = mark
+                      val res_111 = {
+                        val pos_112 = mark
+                        expect('`')
+                          .map { char_113 => PLeaf(char_113.toString) }
+                          .recoverWith { case p: ParseError =>
+                            reset(pos_112)
+                            Failure(p ~ ParseFailed("Expected one of '`'", pos_112))
+                          }
                       }
-                      reset(pos_130)
-                      if (res_131.isSuccess) Failure(ParseFailed("Neglook failed", pos_130))
+                      reset(pos_110)
+                      if (res_111.isSuccess) Failure(ParseFailed("Neglook failed", pos_110))
                       else {
                         Try(PEmpty)
                       }
                     }
-                    catPart_129 <- {
-                      val pos_135 = mark
-                      Char().recoverWith { case p: ParseError =>
-                        reset(pos_135)
-                        Failure(p ~ ParseFailed("expected Var 'Char'", pos_135))
-                      }
-                    }
-                  } yield PBranch("catPart_107", Seq(catPart_128, catPart_129))
-                  res_127.recoverWith { case p: ParseError =>
-                    reset(pos0_126)
+                    catPart_109 <- Char()
+                  } yield PBranch("catPart_90", Seq(catPart_108, catPart_109))
+                  res_107.recoverWith { case p: ParseError =>
+                    reset(pos0_106)
                     Failure(p)
                   }
                 }
-                res_115.recover { _ => reset(pos_114) }
+                res_97.recover { _ => reset(pos_96) }
               }
-              Try(PBranch("catPart_107", parts_113.toSeq))
+              Try(PBranch("catPart_90", parts_95.toSeq))
             }
-            catPart_108 <- {
-              val pos_136 = mark
-              val res_137 = for {
-                char_138 <- expect('`')
-              } yield PLeaf(char_138.toString)
-              res_137.recoverWith { case p: ParseError =>
-                reset(pos_136)
-                Failure(p ~ ParseFailed("Expected one of '`'", pos_136))
-              }
+            catPart_91 <- {
+              val pos_114 = mark
+              expect('`')
+                .map { char_115 => PLeaf(char_115.toString) }
+                .recoverWith { case p: ParseError =>
+                  reset(pos_114)
+                  Failure(p ~ ParseFailed("Expected one of '`'", pos_114))
+                }
             }
-            catPart_109 <- {
-              val pos_139 = mark
-              Spacing().recoverWith { case p: ParseError =>
-                reset(pos_139)
-                Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_139))
-              }
-            }
-          } yield PBranch("Literal", Seq(catPart_106, catPart_107, catPart_108, catPart_109))
-          res_105.recoverWith { case p: ParseError =>
-            reset(pos0_104)
+            catPart_92 <- Spacing()
+          } yield PBranch("Literal", Seq(catPart_89, catPart_90, catPart_91, catPart_92))
+          res_88.recoverWith { case p: ParseError =>
+            reset(pos0_87)
             Failure(p)
           }
         }
-        res_102.recoverWith { case err_103: ParseError =>
-          reset(pos_25)
-          Failure(err_27 ~ err_65 ~ err_103 ~ ParseFailed("", pos_25))
+        res_85.recoverWith { case err_86: ParseError =>
+          reset(pos_22)
+          Failure(err_24 ~ err_55 ~ err_86 ~ ParseFailed("", pos_22))
         }
       }
     }
@@ -454,298 +370,255 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def CLOSE(): Try[PTree] = {
-    val pos0_140 = mark
-    val res_141 = for {
-      catPart_142 <- {
-        val pos_144 = mark
-        val res_145 = for {
-          char_part_146 <- expect(')')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_146.toString)))
-        res_145.recoverWith { case p: ParseError =>
-          reset(pos_144)
-          Failure(p ~ ParseFailed("expected ')'", pos_144))
+    val pos0_116 = mark
+    val res_117 = for {
+      catPart_118 <- {
+        val pos_120 = mark
+        val res_121 = for {
+          char_part_122 <- expect(')')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_122.toString)))
+        res_121.recoverWith { case p: ParseError =>
+          reset(pos_120)
+          Failure(p ~ ParseFailed("expected ')'", pos_120))
         }
       }
-      catPart_143 <- {
-        val pos_147 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_147)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_147))
-        }
-      }
-    } yield PBranch("CLOSE", Seq(catPart_142, catPart_143))
-    res_141.recoverWith { case p: ParseError =>
-      reset(pos0_140)
+      catPart_119 <- Spacing()
+    } yield PBranch("CLOSE", Seq(catPart_118, catPart_119))
+    res_117.recoverWith { case p: ParseError =>
+      reset(pos0_116)
       Failure(p)
     }
   }
 
 
   def Definition(): Try[PTree] = {
-    val pos0_148 = mark
-    val res_149 = for {
-      catPart_150 <- {
-        val pos_153 = mark
-        Identifier().recoverWith { case p: ParseError =>
-          reset(pos_153)
-          Failure(p ~ ParseFailed("expected Var 'Identifier'", pos_153))
-        }
-      }
-      catPart_151 <- {
-        val pos_154 = mark
-        LEFTARROW().recoverWith { case p: ParseError =>
-          reset(pos_154)
-          Failure(p ~ ParseFailed("expected Var 'LEFTARROW'", pos_154))
-        }
-      }
-      catPart_152 <- {
-        val pos_155 = mark
-        Expression().recoverWith { case p: ParseError =>
-          reset(pos_155)
-          Failure(p ~ ParseFailed("expected Var 'Expression'", pos_155))
-        }
-      }
-    } yield PBranch("Definition", Seq(catPart_150, catPart_151, catPart_152))
-    res_149.recoverWith { case p: ParseError =>
-      reset(pos0_148)
+    val pos0_123 = mark
+    val res_124 = for {
+      catPart_125 <- Identifier()
+      catPart_126 <- LEFTARROW()
+      catPart_127 <- Expression()
+    } yield PBranch("Definition", Seq(catPart_125, catPart_126, catPart_127))
+    res_124.recoverWith { case p: ParseError =>
+      reset(pos0_123)
       Failure(p)
     }
   }
 
 
   def Char(): Try[PTree] = {
-    val pos_156 = mark
-    val res_157 = {
-      val pos0_159 = mark
-      val res_160 = for {
-        catPart_161 <- {
-          val pos_163 = mark
-          val res_164 = for {
-            char_part_165 <- expect('\\')
-          } yield PBranch("Lit", Seq(PLeaf(char_part_165.toString)))
-          res_164.recoverWith { case p: ParseError =>
-            reset(pos_163)
-            Failure(p ~ ParseFailed("expected '\\'", pos_163))
+    val pos_128 = mark
+    val res_129 = {
+      val pos0_131 = mark
+      val res_132 = for {
+        catPart_133 <- {
+          val pos_135 = mark
+          val res_136 = for {
+            char_part_137 <- expect('\\')
+          } yield PBranch("Lit", Seq(PLeaf(char_part_137.toString)))
+          res_136.recoverWith { case p: ParseError =>
+            reset(pos_135)
+            Failure(p ~ ParseFailed("expected '\\'", pos_135))
           }
         }
-        catPart_162 <- {
-          val pos_166 = mark
-          val res_167 = for {
-            char_168 <- expect('n', '[', '\\', '\'', 'r', ']', 't', '"')
-          } yield PLeaf(char_168.toString)
-          res_167.recoverWith { case p: ParseError =>
-            reset(pos_166)
-            Failure(p ~ ParseFailed("Expected one of 'n','[','\'','r',']','t','\\',\"", pos_166))
-          }
+        catPart_134 <- {
+          val pos_138 = mark
+          expect('n', '[', '\\', '\'', 'r', ']', 't', '"')
+            .map { char_139 => PLeaf(char_139.toString) }
+            .recoverWith { case p: ParseError =>
+              reset(pos_138)
+              Failure(p ~ ParseFailed("Expected one of 'n','[','\'','r',']','t','\\',\"", pos_138))
+            }
         }
-      } yield PBranch("Char", Seq(catPart_161, catPart_162))
-      res_160.recoverWith { case p: ParseError =>
-        reset(pos0_159)
+      } yield PBranch("Char", Seq(catPart_133, catPart_134))
+      res_132.recoverWith { case p: ParseError =>
+        reset(pos0_131)
         Failure(p)
       }
     }
-    res_157.recoverWith { case err_158: ParseError =>
-      reset(pos_156)
-      val res_169 = {
-        val pos0_171 = mark
-        val res_172 = for {
-          catPart_173 <- {
-            val pos_175 = mark
-            val res_176 = {
-              val pos_177 = mark
-              val res_178 = for {
-                char_part_179 <- expect('\\')
-              } yield PBranch("Lit", Seq(PLeaf(char_part_179.toString)))
-              res_178.recoverWith { case p: ParseError =>
-                reset(pos_177)
-                Failure(p ~ ParseFailed("expected '\\'", pos_177))
+    res_129.recoverWith { case err_130: ParseError =>
+      reset(pos_128)
+      val res_140 = {
+        val pos0_142 = mark
+        val res_143 = for {
+          catPart_144 <- {
+            val pos_146 = mark
+            val res_147 = {
+              val pos_148 = mark
+              val res_149 = for {
+                char_part_150 <- expect('\\')
+              } yield PBranch("Lit", Seq(PLeaf(char_part_150.toString)))
+              res_149.recoverWith { case p: ParseError =>
+                reset(pos_148)
+                Failure(p ~ ParseFailed("expected '\\'", pos_148))
               }
             }
-            reset(pos_175)
-            if (res_176.isSuccess) Failure(ParseFailed("Neglook failed", pos_175))
+            reset(pos_146)
+            if (res_147.isSuccess) Failure(ParseFailed("Neglook failed", pos_146))
             else {
               Try(PEmpty)
             }
           }
-          catPart_174 <- {
-            val pos_180 = mark
+          catPart_145 <- {
+            val pos_151 = mark
             any.map { x => PLeaf(x.toString) }
               .recoverWith { case p: ParseError =>
-                reset(pos_180)
-                Failure(p ~ ParseFailed("Expected any char", pos_180))
+                reset(pos_151)
+                Failure(p ~ ParseFailed("Expected any char", pos_151))
               }
           }
-        } yield PBranch("Char", Seq(catPart_173, catPart_174))
-        res_172.recoverWith { case p: ParseError =>
-          reset(pos0_171)
+        } yield PBranch("Char", Seq(catPart_144, catPart_145))
+        res_143.recoverWith { case p: ParseError =>
+          reset(pos0_142)
           Failure(p)
         }
       }
-      res_169.recoverWith { case err_170: ParseError =>
-        reset(pos_156)
-        Failure(err_158 ~ err_170 ~ ParseFailed("", pos_156))
+      res_140.recoverWith { case err_141: ParseError =>
+        reset(pos_128)
+        Failure(err_130 ~ err_141 ~ ParseFailed("", pos_128))
       }
     }
   }
 
 
   def Class(): Try[PTree] = {
-    val pos0_181 = mark
-    val res_182 = for {
-      catPart_183 <- {
-        val pos_187 = mark
-        val res_188 = for {
-          char_part_189 <- expect('[')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_189.toString)))
-        res_188.recoverWith { case p: ParseError =>
-          reset(pos_187)
-          Failure(p ~ ParseFailed("expected '['", pos_187))
+    val pos0_152 = mark
+    val res_153 = for {
+      catPart_154 <- {
+        val pos_158 = mark
+        val res_159 = for {
+          char_part_160 <- expect('[')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_160.toString)))
+        res_159.recoverWith { case p: ParseError =>
+          reset(pos_158)
+          Failure(p ~ ParseFailed("expected '['", pos_158))
         }
       }
-      catPart_184 <- {
-        var parts_190 = ArrayBuffer.empty[PTree]
-        var pos_191 = mark
-        var res_192 = {
-          val pos0_193 = mark
-          val res_194 = for {
-            catPart_195 <- {
-              val pos_197 = mark
-              val res_198 = {
-                val pos_199 = mark
-                val res_200 = for {
-                  char_part_201 <- expect(']')
-                } yield PBranch("Lit", Seq(PLeaf(char_part_201.toString)))
-                res_200.recoverWith { case p: ParseError =>
-                  reset(pos_199)
-                  Failure(p ~ ParseFailed("expected ']'", pos_199))
+      catPart_155 <- {
+        var parts_161 = ArrayBuffer.empty[PTree]
+        var pos_162 = mark
+        var res_163 = {
+          val pos0_164 = mark
+          val res_165 = for {
+            catPart_166 <- {
+              val pos_168 = mark
+              val res_169 = {
+                val pos_170 = mark
+                val res_171 = for {
+                  char_part_172 <- expect(']')
+                } yield PBranch("Lit", Seq(PLeaf(char_part_172.toString)))
+                res_171.recoverWith { case p: ParseError =>
+                  reset(pos_170)
+                  Failure(p ~ ParseFailed("expected ']'", pos_170))
                 }
               }
-              reset(pos_197)
-              if (res_198.isSuccess) Failure(ParseFailed("Neglook failed", pos_197))
+              reset(pos_168)
+              if (res_169.isSuccess) Failure(ParseFailed("Neglook failed", pos_168))
               else {
                 Try(PEmpty)
               }
             }
-            catPart_196 <- {
-              val pos_202 = mark
-              Range().recoverWith { case p: ParseError =>
-                reset(pos_202)
-                Failure(p ~ ParseFailed("expected Var 'Range'", pos_202))
-              }
-            }
-          } yield PBranch("catPart_184", Seq(catPart_195, catPart_196))
-          res_194.recoverWith { case p: ParseError =>
-            reset(pos0_193)
+            catPart_167 <- Range()
+          } yield PBranch("catPart_155", Seq(catPart_166, catPart_167))
+          res_165.recoverWith { case p: ParseError =>
+            reset(pos0_164)
             Failure(p)
           }
         }
-        res_192.recover { _ => reset(pos_191) }
-        while (res_192.isSuccess) {
-          parts_190 += res_192.get
-          pos_191 = mark
-          res_192 = {
-            val pos0_203 = mark
-            val res_204 = for {
-              catPart_205 <- {
-                val pos_207 = mark
-                val res_208 = {
-                  val pos_209 = mark
-                  val res_210 = for {
-                    char_part_211 <- expect(']')
-                  } yield PBranch("Lit", Seq(PLeaf(char_part_211.toString)))
-                  res_210.recoverWith { case p: ParseError =>
-                    reset(pos_209)
-                    Failure(p ~ ParseFailed("expected ']'", pos_209))
+        res_163.recover { _ => reset(pos_162) }
+        while (res_163.isSuccess) {
+          parts_161 += res_163.get
+          pos_162 = mark
+          res_163 = {
+            val pos0_173 = mark
+            val res_174 = for {
+              catPart_175 <- {
+                val pos_177 = mark
+                val res_178 = {
+                  val pos_179 = mark
+                  val res_180 = for {
+                    char_part_181 <- expect(']')
+                  } yield PBranch("Lit", Seq(PLeaf(char_part_181.toString)))
+                  res_180.recoverWith { case p: ParseError =>
+                    reset(pos_179)
+                    Failure(p ~ ParseFailed("expected ']'", pos_179))
                   }
                 }
-                reset(pos_207)
-                if (res_208.isSuccess) Failure(ParseFailed("Neglook failed", pos_207))
+                reset(pos_177)
+                if (res_178.isSuccess) Failure(ParseFailed("Neglook failed", pos_177))
                 else {
                   Try(PEmpty)
                 }
               }
-              catPart_206 <- {
-                val pos_212 = mark
-                Range().recoverWith { case p: ParseError =>
-                  reset(pos_212)
-                  Failure(p ~ ParseFailed("expected Var 'Range'", pos_212))
-                }
-              }
-            } yield PBranch("catPart_184", Seq(catPart_205, catPart_206))
-            res_204.recoverWith { case p: ParseError =>
-              reset(pos0_203)
+              catPart_176 <- Range()
+            } yield PBranch("catPart_155", Seq(catPart_175, catPart_176))
+            res_174.recoverWith { case p: ParseError =>
+              reset(pos0_173)
               Failure(p)
             }
           }
-          res_192.recover { _ => reset(pos_191) }
+          res_163.recover { _ => reset(pos_162) }
         }
-        Try(PBranch("catPart_184", parts_190.toSeq))
+        Try(PBranch("catPart_155", parts_161.toSeq))
       }
-      catPart_185 <- {
-        val pos_213 = mark
-        val res_214 = for {
-          char_part_215 <- expect(']')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_215.toString)))
-        res_214.recoverWith { case p: ParseError =>
-          reset(pos_213)
-          Failure(p ~ ParseFailed("expected ']'", pos_213))
-        }
-      }
-      catPart_186 <- {
-        val pos_216 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_216)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_216))
+      catPart_156 <- {
+        val pos_182 = mark
+        val res_183 = for {
+          char_part_184 <- expect(']')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_184.toString)))
+        res_183.recoverWith { case p: ParseError =>
+          reset(pos_182)
+          Failure(p ~ ParseFailed("expected ']'", pos_182))
         }
       }
-    } yield PBranch("Class", Seq(catPart_183, catPart_184, catPart_185, catPart_186))
-    res_182.recoverWith { case p: ParseError =>
-      reset(pos0_181)
+      catPart_157 <- Spacing()
+    } yield PBranch("Class", Seq(catPart_154, catPart_155, catPart_156, catPart_157))
+    res_153.recoverWith { case p: ParseError =>
+      reset(pos0_152)
       Failure(p)
     }
   }
 
 
   def EndOfLine(): Try[PTree] = {
-    val pos_217 = mark
-    val res_218 = {
-      val pos_220 = mark
-      val res_221 = for {
-        char_part_222 <- expect('\r')
-        char_part_223 <- expect('\n')
-      } yield PBranch("Lit", Seq(PLeaf(char_part_222.toString), PLeaf(char_part_223.toString)))
-      res_221.recoverWith { case p: ParseError =>
-        reset(pos_220)
-        Failure(p ~ ParseFailed("expected '\r','\n'", pos_220))
+    val pos_185 = mark
+    val res_186 = {
+      val pos_188 = mark
+      val res_189 = for {
+        char_part_190 <- expect('\r')
+        char_part_191 <- expect('\n')
+      } yield PBranch("Lit", Seq(PLeaf(char_part_190.toString), PLeaf(char_part_191.toString)))
+      res_189.recoverWith { case p: ParseError =>
+        reset(pos_188)
+        Failure(p ~ ParseFailed("expected '\r','\n'", pos_188))
       }
     }
-    res_218.recoverWith { case err_219: ParseError =>
-      reset(pos_217)
-      val res_224 = {
-        val pos_226 = mark
-        val res_227 = for {
-          char_part_228 <- expect('\n')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_228.toString)))
-        res_227.recoverWith { case p: ParseError =>
-          reset(pos_226)
-          Failure(p ~ ParseFailed("expected '\n'", pos_226))
+    res_186.recoverWith { case err_187: ParseError =>
+      reset(pos_185)
+      val res_192 = {
+        val pos_194 = mark
+        val res_195 = for {
+          char_part_196 <- expect('\n')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_196.toString)))
+        res_195.recoverWith { case p: ParseError =>
+          reset(pos_194)
+          Failure(p ~ ParseFailed("expected '\n'", pos_194))
         }
       }
-      res_224.recoverWith { case err_225: ParseError =>
-        reset(pos_217)
-        val res_229 = {
-          val pos_231 = mark
-          val res_232 = for {
-            char_part_233 <- expect('\r')
-          } yield PBranch("Lit", Seq(PLeaf(char_part_233.toString)))
-          res_232.recoverWith { case p: ParseError =>
-            reset(pos_231)
-            Failure(p ~ ParseFailed("expected '\r'", pos_231))
+      res_192.recoverWith { case err_193: ParseError =>
+        reset(pos_185)
+        val res_197 = {
+          val pos_199 = mark
+          val res_200 = for {
+            char_part_201 <- expect('\r')
+          } yield PBranch("Lit", Seq(PLeaf(char_part_201.toString)))
+          res_200.recoverWith { case p: ParseError =>
+            reset(pos_199)
+            Failure(p ~ ParseFailed("expected '\r'", pos_199))
           }
         }
-        res_229.recoverWith { case err_230: ParseError =>
-          reset(pos_217)
-          Failure(err_219 ~ err_225 ~ err_230 ~ ParseFailed("", pos_217))
+        res_197.recoverWith { case err_198: ParseError =>
+          reset(pos_185)
+          Failure(err_187 ~ err_193 ~ err_198 ~ ParseFailed("", pos_185))
         }
       }
     }
@@ -753,293 +626,244 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def IdentCont(): Try[PTree] = {
-    val pos_234 = mark
-    val res_235 = {
-      val pos_237 = mark
+    val pos_202 = mark
+    val res_203 = {
+      val pos_205 = mark
       IdentStart().recoverWith { case p: ParseError =>
-        reset(pos_237)
-        Failure(p ~ ParseFailed("expected Var 'IdentStart'", pos_237))
+        reset(pos_205)
+        Failure(p ~ ParseFailed("expected Var 'IdentStart'", pos_205))
       }
     }
-    res_235.recoverWith { case err_236: ParseError =>
-      reset(pos_234)
-      val res_238 = {
-        val pos_240 = mark
-        val res_241 = for {
-          char_242 <- expect('6', '9', '2', '8', '4', '0', '5', '1', '7', '3')
-        } yield PLeaf(char_242.toString)
-        res_241.recoverWith { case p: ParseError =>
-          reset(pos_240)
-          Failure(p ~ ParseFailed("Expected one of '6','9','2','8','4','0','5','1','7','3'", pos_240))
-        }
+    res_203.recoverWith { case err_204: ParseError =>
+      reset(pos_202)
+      val res_206 = {
+        val pos_208 = mark
+        expect('6', '9', '2', '8', '4', '0', '5', '1', '7', '3')
+          .map { char_209 => PLeaf(char_209.toString) }
+          .recoverWith { case p: ParseError =>
+            reset(pos_208)
+            Failure(p ~ ParseFailed("Expected one of '6','9','2','8','4','0','5','1','7','3'", pos_208))
+          }
       }
-      res_238.recoverWith { case err_239: ParseError =>
-        reset(pos_234)
-        Failure(err_236 ~ err_239 ~ ParseFailed("", pos_234))
+      res_206.recoverWith { case err_207: ParseError =>
+        reset(pos_202)
+        Failure(err_204 ~ err_207 ~ ParseFailed("", pos_202))
       }
     }
   }
 
 
   def NOT(): Try[PTree] = {
-    val pos0_243 = mark
-    val res_244 = for {
-      catPart_245 <- {
-        val pos_247 = mark
-        val res_248 = for {
-          char_part_249 <- expect('!')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_249.toString)))
-        res_248.recoverWith { case p: ParseError =>
-          reset(pos_247)
-          Failure(p ~ ParseFailed("expected '!'", pos_247))
+    val pos0_210 = mark
+    val res_211 = for {
+      catPart_212 <- {
+        val pos_214 = mark
+        val res_215 = for {
+          char_part_216 <- expect('!')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_216.toString)))
+        res_215.recoverWith { case p: ParseError =>
+          reset(pos_214)
+          Failure(p ~ ParseFailed("expected '!'", pos_214))
         }
       }
-      catPart_246 <- {
-        val pos_250 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_250)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_250))
-        }
-      }
-    } yield PBranch("NOT", Seq(catPart_245, catPart_246))
-    res_244.recoverWith { case p: ParseError =>
-      reset(pos0_243)
+      catPart_213 <- Spacing()
+    } yield PBranch("NOT", Seq(catPart_212, catPart_213))
+    res_211.recoverWith { case p: ParseError =>
+      reset(pos0_210)
       Failure(p)
     }
   }
 
 
   def QUESTION(): Try[PTree] = {
-    val pos0_251 = mark
-    val res_252 = for {
-      catPart_253 <- {
-        val pos_255 = mark
-        val res_256 = for {
-          char_part_257 <- expect('?')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_257.toString)))
-        res_256.recoverWith { case p: ParseError =>
-          reset(pos_255)
-          Failure(p ~ ParseFailed("expected '?'", pos_255))
+    val pos0_217 = mark
+    val res_218 = for {
+      catPart_219 <- {
+        val pos_221 = mark
+        val res_222 = for {
+          char_part_223 <- expect('?')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_223.toString)))
+        res_222.recoverWith { case p: ParseError =>
+          reset(pos_221)
+          Failure(p ~ ParseFailed("expected '?'", pos_221))
         }
       }
-      catPart_254 <- {
-        val pos_258 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_258)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_258))
-        }
-      }
-    } yield PBranch("QUESTION", Seq(catPart_253, catPart_254))
-    res_252.recoverWith { case p: ParseError =>
-      reset(pos0_251)
+      catPart_220 <- Spacing()
+    } yield PBranch("QUESTION", Seq(catPart_219, catPart_220))
+    res_218.recoverWith { case p: ParseError =>
+      reset(pos0_217)
       Failure(p)
     }
   }
 
 
   def Expression(): Try[PTree] = {
-    val pos0_259 = mark
-    val res_260 = for {
-      catPart_261 <- {
-        val pos_263 = mark
-        Sequence().recoverWith { case p: ParseError =>
-          reset(pos_263)
-          Failure(p ~ ParseFailed("expected Var 'Sequence'", pos_263))
-        }
-      }
-      catPart_262 <- {
-        var parts_264 = ArrayBuffer.empty[PTree]
-        var pos_265 = mark
-        var res_266 = {
-          val pos0_267 = mark
-          val res_268 = for {
-            catPart_269 <- {
-              val pos_271 = mark
-              SLASH().recoverWith { case p: ParseError =>
-                reset(pos_271)
-                Failure(p ~ ParseFailed("expected Var 'SLASH'", pos_271))
-              }
-            }
-            catPart_270 <- {
-              val pos_272 = mark
-              Sequence().recoverWith { case p: ParseError =>
-                reset(pos_272)
-                Failure(p ~ ParseFailed("expected Var 'Sequence'", pos_272))
-              }
-            }
-          } yield PBranch("catPart_262", Seq(catPart_269, catPart_270))
-          res_268.recoverWith { case p: ParseError =>
-            reset(pos0_267)
+    val pos0_224 = mark
+    val res_225 = for {
+      catPart_226 <- Sequence()
+      catPart_227 <- {
+        var parts_228 = ArrayBuffer.empty[PTree]
+        var pos_229 = mark
+        var res_230 = {
+          val pos0_231 = mark
+          val res_232 = for {
+            catPart_233 <- SLASH()
+            catPart_234 <- Sequence()
+          } yield PBranch("catPart_227", Seq(catPart_233, catPart_234))
+          res_232.recoverWith { case p: ParseError =>
+            reset(pos0_231)
             Failure(p)
           }
         }
-        res_266.recover { _ => reset(pos_265) }
-        while (res_266.isSuccess) {
-          parts_264 += res_266.get
-          pos_265 = mark
-          res_266 = {
-            val pos0_273 = mark
-            val res_274 = for {
-              catPart_275 <- {
-                val pos_277 = mark
-                SLASH().recoverWith { case p: ParseError =>
-                  reset(pos_277)
-                  Failure(p ~ ParseFailed("expected Var 'SLASH'", pos_277))
-                }
-              }
-              catPart_276 <- {
-                val pos_278 = mark
-                Sequence().recoverWith { case p: ParseError =>
-                  reset(pos_278)
-                  Failure(p ~ ParseFailed("expected Var 'Sequence'", pos_278))
-                }
-              }
-            } yield PBranch("catPart_262", Seq(catPart_275, catPart_276))
-            res_274.recoverWith { case p: ParseError =>
-              reset(pos0_273)
+        res_230.recover { _ => reset(pos_229) }
+        while (res_230.isSuccess) {
+          parts_228 += res_230.get
+          pos_229 = mark
+          res_230 = {
+            val pos0_235 = mark
+            val res_236 = for {
+              catPart_237 <- SLASH()
+              catPart_238 <- Sequence()
+            } yield PBranch("catPart_227", Seq(catPart_237, catPart_238))
+            res_236.recoverWith { case p: ParseError =>
+              reset(pos0_235)
               Failure(p)
             }
           }
-          res_266.recover { _ => reset(pos_265) }
+          res_230.recover { _ => reset(pos_229) }
         }
-        Try(PBranch("catPart_262", parts_264.toSeq))
+        Try(PBranch("catPart_227", parts_228.toSeq))
       }
-    } yield PBranch("Expression", Seq(catPart_261, catPart_262))
-    res_260.recoverWith { case p: ParseError =>
-      reset(pos0_259)
+    } yield PBranch("Expression", Seq(catPart_226, catPart_227))
+    res_225.recoverWith { case p: ParseError =>
+      reset(pos0_224)
       Failure(p)
     }
   }
 
 
   def Sequence(): Try[PTree] = {
-    var parts_279 = ArrayBuffer.empty[PTree]
-    var pos_280 = mark
-    var res_281 = {
-      val pos_282 = mark
+    var parts_239 = ArrayBuffer.empty[PTree]
+    var pos_240 = mark
+    var res_241 = {
+      val pos_242 = mark
       Prefix().recoverWith { case p: ParseError =>
-        reset(pos_282)
-        Failure(p ~ ParseFailed("expected Var 'Prefix'", pos_282))
+        reset(pos_242)
+        Failure(p ~ ParseFailed("expected Var 'Prefix'", pos_242))
       }
     }
-    res_281.recover { _ => reset(pos_280) }
-    while (res_281.isSuccess) {
-      parts_279 += res_281.get
-      pos_280 = mark
-      res_281 = {
-        val pos_283 = mark
+    res_241.recover { _ => reset(pos_240) }
+    while (res_241.isSuccess) {
+      parts_239 += res_241.get
+      pos_240 = mark
+      res_241 = {
+        val pos_243 = mark
         Prefix().recoverWith { case p: ParseError =>
-          reset(pos_283)
-          Failure(p ~ ParseFailed("expected Var 'Prefix'", pos_283))
+          reset(pos_243)
+          Failure(p ~ ParseFailed("expected Var 'Prefix'", pos_243))
         }
       }
-      res_281.recover { _ => reset(pos_280) }
+      res_241.recover { _ => reset(pos_240) }
     }
-    Try(PBranch("Sequence", parts_279.toSeq))
+    Try(PBranch("Sequence", parts_239.toSeq))
   }
 
 
   def Suffix(): Try[PTree] = {
-    val pos0_284 = mark
-    val res_285 = for {
-      catPart_286 <- {
-        val pos_288 = mark
-        Primary().recoverWith { case p: ParseError =>
-          reset(pos_288)
-          Failure(p ~ ParseFailed("expected Var 'Primary'", pos_288))
-        }
-      }
-      catPart_287 <- {
-        val pos_289 = mark
-        val res_290 = {
-          val pos_292 = mark
-          val res_293 = {
-            val pos_295 = mark
+    val pos0_244 = mark
+    val res_245 = for {
+      catPart_246 <- Primary()
+      catPart_247 <- {
+        val pos_248 = mark
+        val res_249 = {
+          val pos_251 = mark
+          val res_252 = {
+            val pos_254 = mark
             QUESTION().recoverWith { case p: ParseError =>
-              reset(pos_295)
-              Failure(p ~ ParseFailed("expected Var 'QUESTION'", pos_295))
+              reset(pos_254)
+              Failure(p ~ ParseFailed("expected Var 'QUESTION'", pos_254))
             }
           }
-          res_293.recoverWith { case err_294: ParseError =>
-            reset(pos_292)
-            val res_296 = {
-              val pos_298 = mark
+          res_252.recoverWith { case err_253: ParseError =>
+            reset(pos_251)
+            val res_255 = {
+              val pos_257 = mark
               STAR().recoverWith { case p: ParseError =>
-                reset(pos_298)
-                Failure(p ~ ParseFailed("expected Var 'STAR'", pos_298))
+                reset(pos_257)
+                Failure(p ~ ParseFailed("expected Var 'STAR'", pos_257))
               }
             }
-            res_296.recoverWith { case err_297: ParseError =>
-              reset(pos_292)
-              val res_299 = {
-                val pos_301 = mark
+            res_255.recoverWith { case err_256: ParseError =>
+              reset(pos_251)
+              val res_258 = {
+                val pos_260 = mark
                 PLUS().recoverWith { case p: ParseError =>
-                  reset(pos_301)
-                  Failure(p ~ ParseFailed("expected Var 'PLUS'", pos_301))
+                  reset(pos_260)
+                  Failure(p ~ ParseFailed("expected Var 'PLUS'", pos_260))
                 }
               }
-              res_299.recoverWith { case err_300: ParseError =>
-                reset(pos_292)
-                Failure(err_294 ~ err_297 ~ err_300 ~ ParseFailed("", pos_292))
+              res_258.recoverWith { case err_259: ParseError =>
+                reset(pos_251)
+                Failure(err_253 ~ err_256 ~ err_259 ~ ParseFailed("", pos_251))
               }
             }
           }
         }
-        res_290.recoverWith { case err_291: ParseError =>
-          reset(pos_289)
-          val res_302 = {
+        res_249.recoverWith { case err_250: ParseError =>
+          reset(pos_248)
+          val res_261 = {
             Try(PEmpty)
           }
-          res_302.recoverWith { case err_303: ParseError =>
-            reset(pos_289)
-            Failure(err_291 ~ err_303 ~ ParseFailed("", pos_289))
+          res_261.recoverWith { case err_262: ParseError =>
+            reset(pos_248)
+            Failure(err_250 ~ err_262 ~ ParseFailed("", pos_248))
           }
         }
       }
-    } yield PBranch("Suffix", Seq(catPart_286, catPart_287))
-    res_285.recoverWith { case p: ParseError =>
-      reset(pos0_284)
+    } yield PBranch("Suffix", Seq(catPart_246, catPart_247))
+    res_245.recoverWith { case p: ParseError =>
+      reset(pos0_244)
       Failure(p)
     }
   }
 
 
   def Space(): Try[PTree] = {
-    val pos_304 = mark
-    val res_305 = {
-      val pos_307 = mark
-      val res_308 = for {
-        char_part_309 <- expect(' ')
-      } yield PBranch("Lit", Seq(PLeaf(char_part_309.toString)))
-      res_308.recoverWith { case p: ParseError =>
-        reset(pos_307)
-        Failure(p ~ ParseFailed("expected ' '", pos_307))
+    val pos_263 = mark
+    val res_264 = {
+      val pos_266 = mark
+      val res_267 = for {
+        char_part_268 <- expect(' ')
+      } yield PBranch("Lit", Seq(PLeaf(char_part_268.toString)))
+      res_267.recoverWith { case p: ParseError =>
+        reset(pos_266)
+        Failure(p ~ ParseFailed("expected ' '", pos_266))
       }
     }
-    res_305.recoverWith { case err_306: ParseError =>
-      reset(pos_304)
-      val res_310 = {
-        val pos_312 = mark
-        val res_313 = for {
-          char_part_314 <- expect('\t')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_314.toString)))
-        res_313.recoverWith { case p: ParseError =>
-          reset(pos_312)
-          Failure(p ~ ParseFailed("expected '\t'", pos_312))
+    res_264.recoverWith { case err_265: ParseError =>
+      reset(pos_263)
+      val res_269 = {
+        val pos_271 = mark
+        val res_272 = for {
+          char_part_273 <- expect('\t')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_273.toString)))
+        res_272.recoverWith { case p: ParseError =>
+          reset(pos_271)
+          Failure(p ~ ParseFailed("expected '\t'", pos_271))
         }
       }
-      res_310.recoverWith { case err_311: ParseError =>
-        reset(pos_304)
-        val res_315 = {
-          val pos_317 = mark
+      res_269.recoverWith { case err_270: ParseError =>
+        reset(pos_263)
+        val res_274 = {
+          val pos_276 = mark
           EndOfLine().recoverWith { case p: ParseError =>
-            reset(pos_317)
-            Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_317))
+            reset(pos_276)
+            Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_276))
           }
         }
-        res_315.recoverWith { case err_316: ParseError =>
-          reset(pos_304)
-          Failure(err_306 ~ err_311 ~ err_316 ~ ParseFailed("", pos_304))
+        res_274.recoverWith { case err_275: ParseError =>
+          reset(pos_263)
+          Failure(err_265 ~ err_270 ~ err_275 ~ ParseFailed("", pos_263))
         }
       }
     }
@@ -1047,45 +871,39 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def OPEN(): Try[PTree] = {
-    val pos0_318 = mark
-    val res_319 = for {
-      catPart_320 <- {
-        val pos_322 = mark
-        val res_323 = for {
-          char_part_324 <- expect('(')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_324.toString)))
-        res_323.recoverWith { case p: ParseError =>
-          reset(pos_322)
-          Failure(p ~ ParseFailed("expected '('", pos_322))
+    val pos0_277 = mark
+    val res_278 = for {
+      catPart_279 <- {
+        val pos_281 = mark
+        val res_282 = for {
+          char_part_283 <- expect('(')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_283.toString)))
+        res_282.recoverWith { case p: ParseError =>
+          reset(pos_281)
+          Failure(p ~ ParseFailed("expected '('", pos_281))
         }
       }
-      catPart_321 <- {
-        val pos_325 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_325)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_325))
-        }
-      }
-    } yield PBranch("OPEN", Seq(catPart_320, catPart_321))
-    res_319.recoverWith { case p: ParseError =>
-      reset(pos0_318)
+      catPart_280 <- Spacing()
+    } yield PBranch("OPEN", Seq(catPart_279, catPart_280))
+    res_278.recoverWith { case p: ParseError =>
+      reset(pos0_277)
       Failure(p)
     }
   }
 
 
   def EndOfFile(): Try[PTree] = {
-    val pos_326 = mark
-    val res_327 = {
-      val pos_328 = mark
+    val pos_284 = mark
+    val res_285 = {
+      val pos_286 = mark
       any.map { x => PLeaf(x.toString) }
         .recoverWith { case p: ParseError =>
-          reset(pos_328)
-          Failure(p ~ ParseFailed("Expected any char", pos_328))
+          reset(pos_286)
+          Failure(p ~ ParseFailed("Expected any char", pos_286))
         }
     }
-    reset(pos_326)
-    if (res_327.isSuccess) Failure(ParseFailed("Neglook failed", pos_326))
+    reset(pos_284)
+    if (res_285.isSuccess) Failure(ParseFailed("Neglook failed", pos_284))
     else {
       Try(PEmpty)
     }
@@ -1093,100 +911,76 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def Primary(): Try[PTree] = {
-    val pos_329 = mark
-    val res_330 = {
-      val pos0_332 = mark
-      val res_333 = for {
-        catPart_334 <- {
-          val pos_336 = mark
-          Identifier().recoverWith { case p: ParseError =>
-            reset(pos_336)
-            Failure(p ~ ParseFailed("expected Var 'Identifier'", pos_336))
-          }
-        }
-        catPart_335 <- {
-          val pos_337 = mark
-          val res_338 = {
-            val pos_339 = mark
+    val pos_287 = mark
+    val res_288 = {
+      val pos0_290 = mark
+      val res_291 = for {
+        catPart_292 <- Identifier()
+        catPart_293 <- {
+          val pos_294 = mark
+          val res_295 = {
+            val pos_296 = mark
             LEFTARROW().recoverWith { case p: ParseError =>
-              reset(pos_339)
-              Failure(p ~ ParseFailed("expected Var 'LEFTARROW'", pos_339))
+              reset(pos_296)
+              Failure(p ~ ParseFailed("expected Var 'LEFTARROW'", pos_296))
             }
           }
-          reset(pos_337)
-          if (res_338.isSuccess) Failure(ParseFailed("Neglook failed", pos_337))
+          reset(pos_294)
+          if (res_295.isSuccess) Failure(ParseFailed("Neglook failed", pos_294))
           else {
             Try(PEmpty)
           }
         }
-      } yield PBranch("Primary", Seq(catPart_334, catPart_335))
-      res_333.recoverWith { case p: ParseError =>
-        reset(pos0_332)
+      } yield PBranch("Primary", Seq(catPart_292, catPart_293))
+      res_291.recoverWith { case p: ParseError =>
+        reset(pos0_290)
         Failure(p)
       }
     }
-    res_330.recoverWith { case err_331: ParseError =>
-      reset(pos_329)
-      val res_340 = {
-        val pos0_342 = mark
-        val res_343 = for {
-          catPart_344 <- {
-            val pos_347 = mark
-            OPEN().recoverWith { case p: ParseError =>
-              reset(pos_347)
-              Failure(p ~ ParseFailed("expected Var 'OPEN'", pos_347))
-            }
-          }
-          catPart_345 <- {
-            val pos_348 = mark
-            Expression().recoverWith { case p: ParseError =>
-              reset(pos_348)
-              Failure(p ~ ParseFailed("expected Var 'Expression'", pos_348))
-            }
-          }
-          catPart_346 <- {
-            val pos_349 = mark
-            CLOSE().recoverWith { case p: ParseError =>
-              reset(pos_349)
-              Failure(p ~ ParseFailed("expected Var 'CLOSE'", pos_349))
-            }
-          }
-        } yield PBranch("Primary", Seq(catPart_344, catPart_345, catPart_346))
-        res_343.recoverWith { case p: ParseError =>
-          reset(pos0_342)
+    res_288.recoverWith { case err_289: ParseError =>
+      reset(pos_287)
+      val res_297 = {
+        val pos0_299 = mark
+        val res_300 = for {
+          catPart_301 <- OPEN()
+          catPart_302 <- Expression()
+          catPart_303 <- CLOSE()
+        } yield PBranch("Primary", Seq(catPart_301, catPart_302, catPart_303))
+        res_300.recoverWith { case p: ParseError =>
+          reset(pos0_299)
           Failure(p)
         }
       }
-      res_340.recoverWith { case err_341: ParseError =>
-        reset(pos_329)
-        val res_350 = {
-          val pos_352 = mark
+      res_297.recoverWith { case err_298: ParseError =>
+        reset(pos_287)
+        val res_304 = {
+          val pos_306 = mark
           Literal().recoverWith { case p: ParseError =>
-            reset(pos_352)
-            Failure(p ~ ParseFailed("expected Var 'Literal'", pos_352))
+            reset(pos_306)
+            Failure(p ~ ParseFailed("expected Var 'Literal'", pos_306))
           }
         }
-        res_350.recoverWith { case err_351: ParseError =>
-          reset(pos_329)
-          val res_353 = {
-            val pos_355 = mark
+        res_304.recoverWith { case err_305: ParseError =>
+          reset(pos_287)
+          val res_307 = {
+            val pos_309 = mark
             Class().recoverWith { case p: ParseError =>
-              reset(pos_355)
-              Failure(p ~ ParseFailed("expected Var 'Class'", pos_355))
+              reset(pos_309)
+              Failure(p ~ ParseFailed("expected Var 'Class'", pos_309))
             }
           }
-          res_353.recoverWith { case err_354: ParseError =>
-            reset(pos_329)
-            val res_356 = {
-              val pos_358 = mark
+          res_307.recoverWith { case err_308: ParseError =>
+            reset(pos_287)
+            val res_310 = {
+              val pos_312 = mark
               DOT().recoverWith { case p: ParseError =>
-                reset(pos_358)
-                Failure(p ~ ParseFailed("expected Var 'DOT'", pos_358))
+                reset(pos_312)
+                Failure(p ~ ParseFailed("expected Var 'DOT'", pos_312))
               }
             }
-            res_356.recoverWith { case err_357: ParseError =>
-              reset(pos_329)
-              Failure(err_331 ~ err_341 ~ err_351 ~ err_354 ~ err_357 ~ ParseFailed("", pos_329))
+            res_310.recoverWith { case err_311: ParseError =>
+              reset(pos_287)
+              Failure(err_289 ~ err_298 ~ err_305 ~ err_308 ~ err_311 ~ ParseFailed("", pos_287))
             }
           }
         }
@@ -1196,484 +990,411 @@ class GeneratedPEGParser(lexer: Lexer) extends Parser(lexer) {
 
 
   def Spacing(): Try[PTree] = {
-    var parts_359 = ArrayBuffer.empty[PTree]
-    var pos_360 = mark
-    var res_361 = {
-      val pos_362 = mark
-      val res_363 = {
-        val pos_365 = mark
+    var parts_313 = ArrayBuffer.empty[PTree]
+    var pos_314 = mark
+    var res_315 = {
+      val pos_316 = mark
+      val res_317 = {
+        val pos_319 = mark
         Space().recoverWith { case p: ParseError =>
-          reset(pos_365)
-          Failure(p ~ ParseFailed("expected Var 'Space'", pos_365))
+          reset(pos_319)
+          Failure(p ~ ParseFailed("expected Var 'Space'", pos_319))
         }
       }
-      res_363.recoverWith { case err_364: ParseError =>
-        reset(pos_362)
-        val res_366 = {
-          val pos_368 = mark
+      res_317.recoverWith { case err_318: ParseError =>
+        reset(pos_316)
+        val res_320 = {
+          val pos_322 = mark
           Comment().recoverWith { case p: ParseError =>
-            reset(pos_368)
-            Failure(p ~ ParseFailed("expected Var 'Comment'", pos_368))
+            reset(pos_322)
+            Failure(p ~ ParseFailed("expected Var 'Comment'", pos_322))
           }
         }
-        res_366.recoverWith { case err_367: ParseError =>
-          reset(pos_362)
-          Failure(err_364 ~ err_367 ~ ParseFailed("", pos_362))
+        res_320.recoverWith { case err_321: ParseError =>
+          reset(pos_316)
+          Failure(err_318 ~ err_321 ~ ParseFailed("", pos_316))
         }
       }
     }
-    res_361.recover { _ => reset(pos_360) }
-    while (res_361.isSuccess) {
-      parts_359 += res_361.get
-      pos_360 = mark
-      res_361 = {
-        val pos_369 = mark
-        val res_370 = {
-          val pos_372 = mark
+    res_315.recover { _ => reset(pos_314) }
+    while (res_315.isSuccess) {
+      parts_313 += res_315.get
+      pos_314 = mark
+      res_315 = {
+        val pos_323 = mark
+        val res_324 = {
+          val pos_326 = mark
           Space().recoverWith { case p: ParseError =>
-            reset(pos_372)
-            Failure(p ~ ParseFailed("expected Var 'Space'", pos_372))
+            reset(pos_326)
+            Failure(p ~ ParseFailed("expected Var 'Space'", pos_326))
           }
         }
-        res_370.recoverWith { case err_371: ParseError =>
-          reset(pos_369)
-          val res_373 = {
-            val pos_375 = mark
+        res_324.recoverWith { case err_325: ParseError =>
+          reset(pos_323)
+          val res_327 = {
+            val pos_329 = mark
             Comment().recoverWith { case p: ParseError =>
-              reset(pos_375)
-              Failure(p ~ ParseFailed("expected Var 'Comment'", pos_375))
+              reset(pos_329)
+              Failure(p ~ ParseFailed("expected Var 'Comment'", pos_329))
             }
           }
-          res_373.recoverWith { case err_374: ParseError =>
-            reset(pos_369)
-            Failure(err_371 ~ err_374 ~ ParseFailed("", pos_369))
+          res_327.recoverWith { case err_328: ParseError =>
+            reset(pos_323)
+            Failure(err_325 ~ err_328 ~ ParseFailed("", pos_323))
           }
         }
       }
-      res_361.recover { _ => reset(pos_360) }
+      res_315.recover { _ => reset(pos_314) }
     }
-    Try(PBranch("Spacing", parts_359.toSeq))
+    Try(PBranch("Spacing", parts_313.toSeq))
   }
 
 
   def IdentStart(): Try[PTree] = {
-    val pos_376 = mark
-    val res_377 = for {
-      char_378 <- expect('v', 'x', 'H', '_', 'e', 'I', 'M', 'b', 'R', 'n', 'a', 'F', 'D', 'u', 'y', 'X', 'k', 'h', 'V', 'E', 'A', 'f', 'J', 'S', 'W', 'z', 'r', 'g', 'l', 'c', 'P', 'q', 'Y', 'm', 'O', 'B', 's', 'K', 'd', 'T', 'N', 'Q', 'U', 'Z', 'i', 'j', 'p', 'C', 'G', 'L', 't', 'w', 'o')
-    } yield PLeaf(char_378.toString)
-    res_377.recoverWith { case p: ParseError =>
-      reset(pos_376)
-      Failure(p ~ ParseFailed("Expected one of 'v','x','H','_','e','I','M','b','R','n','a','F','D','u','y','X','k','h','V','E','A','f','J','S','W','z','r','g','l','c','P','q','Y','m','O','B','s','K','d','T','N','Q','U','Z','i','j','p','C','G','L','t','w','o'", pos_376))
-    }
+    val pos_330 = mark
+    expect('v', 'x', 'H', '_', 'e', 'I', 'M', 'b', 'R', 'n', 'a', 'F', 'D', 'u', 'y', 'X', 'k', 'h', 'V', 'E', 'A', 'f', 'J', 'S', 'W', 'z', 'r', 'g', 'l', 'c', 'P', 'q', 'Y', 'm', 'O', 'B', 's', 'K', 'd', 'T', 'N', 'Q', 'U', 'Z', 'i', 'j', 'p', 'C', 'G', 'L', 't', 'w', 'o')
+      .map { char_331 => PLeaf(char_331.toString) }
+      .recoverWith { case p: ParseError =>
+        reset(pos_330)
+        Failure(p ~ ParseFailed("Expected one of 'v','x','H','_','e','I','M','b','R','n','a','F','D','u','y','X','k','h','V','E','A','f','J','S','W','z','r','g','l','c','P','q','Y','m','O','B','s','K','d','T','N','Q','U','Z','i','j','p','C','G','L','t','w','o'", pos_330))
+      }
   }
 
 
   def Prefix(): Try[PTree] = {
-    val pos0_379 = mark
-    val res_380 = for {
-      catPart_381 <- {
-        val pos_383 = mark
-        val res_384 = {
-          val pos_386 = mark
-          val res_387 = {
-            val pos_389 = mark
+    val pos0_332 = mark
+    val res_333 = for {
+      catPart_334 <- {
+        val pos_336 = mark
+        val res_337 = {
+          val pos_339 = mark
+          val res_340 = {
+            val pos_342 = mark
             AND().recoverWith { case p: ParseError =>
-              reset(pos_389)
-              Failure(p ~ ParseFailed("expected Var 'AND'", pos_389))
+              reset(pos_342)
+              Failure(p ~ ParseFailed("expected Var 'AND'", pos_342))
             }
           }
-          res_387.recoverWith { case err_388: ParseError =>
-            reset(pos_386)
-            val res_390 = {
-              val pos_392 = mark
+          res_340.recoverWith { case err_341: ParseError =>
+            reset(pos_339)
+            val res_343 = {
+              val pos_345 = mark
               NOT().recoverWith { case p: ParseError =>
-                reset(pos_392)
-                Failure(p ~ ParseFailed("expected Var 'NOT'", pos_392))
+                reset(pos_345)
+                Failure(p ~ ParseFailed("expected Var 'NOT'", pos_345))
               }
             }
-            res_390.recoverWith { case err_391: ParseError =>
-              reset(pos_386)
-              Failure(err_388 ~ err_391 ~ ParseFailed("", pos_386))
+            res_343.recoverWith { case err_344: ParseError =>
+              reset(pos_339)
+              Failure(err_341 ~ err_344 ~ ParseFailed("", pos_339))
             }
           }
         }
-        res_384.recoverWith { case err_385: ParseError =>
-          reset(pos_383)
-          val res_393 = {
+        res_337.recoverWith { case err_338: ParseError =>
+          reset(pos_336)
+          val res_346 = {
             Try(PEmpty)
           }
-          res_393.recoverWith { case err_394: ParseError =>
-            reset(pos_383)
-            Failure(err_385 ~ err_394 ~ ParseFailed("", pos_383))
+          res_346.recoverWith { case err_347: ParseError =>
+            reset(pos_336)
+            Failure(err_338 ~ err_347 ~ ParseFailed("", pos_336))
           }
         }
       }
-      catPart_382 <- {
-        val pos_395 = mark
-        Suffix().recoverWith { case p: ParseError =>
-          reset(pos_395)
-          Failure(p ~ ParseFailed("expected Var 'Suffix'", pos_395))
-        }
-      }
-    } yield PBranch("Prefix", Seq(catPart_381, catPart_382))
-    res_380.recoverWith { case p: ParseError =>
-      reset(pos0_379)
+      catPart_335 <- Suffix()
+    } yield PBranch("Prefix", Seq(catPart_334, catPart_335))
+    res_333.recoverWith { case p: ParseError =>
+      reset(pos0_332)
       Failure(p)
     }
   }
 
 
   def Identifier(): Try[PTree] = {
-    val pos0_396 = mark
-    val res_397 = for {
-      catPart_398 <- {
-        val pos_401 = mark
-        IdentStart().recoverWith { case p: ParseError =>
-          reset(pos_401)
-          Failure(p ~ ParseFailed("expected Var 'IdentStart'", pos_401))
-        }
-      }
-      catPart_399 <- {
-        var parts_402 = ArrayBuffer.empty[PTree]
-        var pos_403 = mark
-        var res_404 = {
-          val pos_405 = mark
+    val pos0_348 = mark
+    val res_349 = for {
+      catPart_350 <- IdentStart()
+      catPart_351 <- {
+        var parts_353 = ArrayBuffer.empty[PTree]
+        var pos_354 = mark
+        var res_355 = {
+          val pos_356 = mark
           IdentCont().recoverWith { case p: ParseError =>
-            reset(pos_405)
-            Failure(p ~ ParseFailed("expected Var 'IdentCont'", pos_405))
+            reset(pos_356)
+            Failure(p ~ ParseFailed("expected Var 'IdentCont'", pos_356))
           }
         }
-        res_404.recover { _ => reset(pos_403) }
-        while (res_404.isSuccess) {
-          parts_402 += res_404.get
-          pos_403 = mark
-          res_404 = {
-            val pos_406 = mark
+        res_355.recover { _ => reset(pos_354) }
+        while (res_355.isSuccess) {
+          parts_353 += res_355.get
+          pos_354 = mark
+          res_355 = {
+            val pos_357 = mark
             IdentCont().recoverWith { case p: ParseError =>
-              reset(pos_406)
-              Failure(p ~ ParseFailed("expected Var 'IdentCont'", pos_406))
+              reset(pos_357)
+              Failure(p ~ ParseFailed("expected Var 'IdentCont'", pos_357))
             }
           }
-          res_404.recover { _ => reset(pos_403) }
+          res_355.recover { _ => reset(pos_354) }
         }
-        Try(PBranch("catPart_399", parts_402.toSeq))
+        Try(PBranch("catPart_351", parts_353.toSeq))
       }
-      catPart_400 <- {
-        val pos_407 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_407)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_407))
-        }
-      }
-    } yield PBranch("Identifier", Seq(catPart_398, catPart_399, catPart_400))
-    res_397.recoverWith { case p: ParseError =>
-      reset(pos0_396)
+      catPart_352 <- Spacing()
+    } yield PBranch("Identifier", Seq(catPart_350, catPart_351, catPart_352))
+    res_349.recoverWith { case p: ParseError =>
+      reset(pos0_348)
       Failure(p)
     }
   }
 
 
   def SLASH(): Try[PTree] = {
-    val pos0_408 = mark
-    val res_409 = for {
-      catPart_410 <- {
-        val pos_412 = mark
-        val res_413 = for {
-          char_part_414 <- expect('/')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_414.toString)))
-        res_413.recoverWith { case p: ParseError =>
-          reset(pos_412)
-          Failure(p ~ ParseFailed("expected '/'", pos_412))
+    val pos0_358 = mark
+    val res_359 = for {
+      catPart_360 <- {
+        val pos_362 = mark
+        val res_363 = for {
+          char_part_364 <- expect('/')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_364.toString)))
+        res_363.recoverWith { case p: ParseError =>
+          reset(pos_362)
+          Failure(p ~ ParseFailed("expected '/'", pos_362))
         }
       }
-      catPart_411 <- {
-        val pos_415 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_415)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_415))
-        }
-      }
-    } yield PBranch("SLASH", Seq(catPart_410, catPart_411))
-    res_409.recoverWith { case p: ParseError =>
-      reset(pos0_408)
+      catPart_361 <- Spacing()
+    } yield PBranch("SLASH", Seq(catPart_360, catPart_361))
+    res_359.recoverWith { case p: ParseError =>
+      reset(pos0_358)
       Failure(p)
     }
   }
 
 
   def LEFTARROW(): Try[PTree] = {
-    val pos0_416 = mark
-    val res_417 = for {
-      catPart_418 <- {
-        val pos_420 = mark
-        val res_421 = for {
-          char_part_422 <- expect('<')
-          char_part_423 <- expect('-')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_422.toString), PLeaf(char_part_423.toString)))
-        res_421.recoverWith { case p: ParseError =>
-          reset(pos_420)
-          Failure(p ~ ParseFailed("expected '<','-'", pos_420))
+    val pos0_365 = mark
+    val res_366 = for {
+      catPart_367 <- {
+        val pos_369 = mark
+        val res_370 = for {
+          char_part_371 <- expect('<')
+          char_part_372 <- expect('-')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_371.toString), PLeaf(char_part_372.toString)))
+        res_370.recoverWith { case p: ParseError =>
+          reset(pos_369)
+          Failure(p ~ ParseFailed("expected '<','-'", pos_369))
         }
       }
-      catPart_419 <- {
-        val pos_424 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_424)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_424))
-        }
-      }
-    } yield PBranch("LEFTARROW", Seq(catPart_418, catPart_419))
-    res_417.recoverWith { case p: ParseError =>
-      reset(pos0_416)
+      catPart_368 <- Spacing()
+    } yield PBranch("LEFTARROW", Seq(catPart_367, catPart_368))
+    res_366.recoverWith { case p: ParseError =>
+      reset(pos0_365)
       Failure(p)
     }
   }
 
 
   def Comment(): Try[PTree] = {
-    val pos0_425 = mark
-    val res_426 = for {
-      catPart_427 <- {
-        val pos_430 = mark
-        val res_431 = for {
-          char_part_432 <- expect('#')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_432.toString)))
-        res_431.recoverWith { case p: ParseError =>
-          reset(pos_430)
-          Failure(p ~ ParseFailed("expected '#'", pos_430))
+    val pos0_373 = mark
+    val res_374 = for {
+      catPart_375 <- {
+        val pos_378 = mark
+        val res_379 = for {
+          char_part_380 <- expect('#')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_380.toString)))
+        res_379.recoverWith { case p: ParseError =>
+          reset(pos_378)
+          Failure(p ~ ParseFailed("expected '#'", pos_378))
         }
       }
-      catPart_428 <- {
-        var parts_433 = ArrayBuffer.empty[PTree]
-        var pos_434 = mark
-        var res_435 = {
-          val pos0_436 = mark
-          val res_437 = for {
-            catPart_438 <- {
-              val pos_440 = mark
-              val res_441 = {
-                val pos_442 = mark
+      catPart_376 <- {
+        var parts_381 = ArrayBuffer.empty[PTree]
+        var pos_382 = mark
+        var res_383 = {
+          val pos0_384 = mark
+          val res_385 = for {
+            catPart_386 <- {
+              val pos_388 = mark
+              val res_389 = {
+                val pos_390 = mark
                 EndOfLine().recoverWith { case p: ParseError =>
-                  reset(pos_442)
-                  Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_442))
+                  reset(pos_390)
+                  Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_390))
                 }
               }
-              reset(pos_440)
-              if (res_441.isSuccess) Failure(ParseFailed("Neglook failed", pos_440))
+              reset(pos_388)
+              if (res_389.isSuccess) Failure(ParseFailed("Neglook failed", pos_388))
               else {
                 Try(PEmpty)
               }
             }
-            catPart_439 <- {
-              val pos_443 = mark
+            catPart_387 <- {
+              val pos_391 = mark
               any.map { x => PLeaf(x.toString) }
                 .recoverWith { case p: ParseError =>
-                  reset(pos_443)
-                  Failure(p ~ ParseFailed("Expected any char", pos_443))
+                  reset(pos_391)
+                  Failure(p ~ ParseFailed("Expected any char", pos_391))
                 }
             }
-          } yield PBranch("catPart_428", Seq(catPart_438, catPart_439))
-          res_437.recoverWith { case p: ParseError =>
-            reset(pos0_436)
+          } yield PBranch("catPart_376", Seq(catPart_386, catPart_387))
+          res_385.recoverWith { case p: ParseError =>
+            reset(pos0_384)
             Failure(p)
           }
         }
-        res_435.recover { _ => reset(pos_434) }
-        while (res_435.isSuccess) {
-          parts_433 += res_435.get
-          pos_434 = mark
-          res_435 = {
-            val pos0_444 = mark
-            val res_445 = for {
-              catPart_446 <- {
-                val pos_448 = mark
-                val res_449 = {
-                  val pos_450 = mark
+        res_383.recover { _ => reset(pos_382) }
+        while (res_383.isSuccess) {
+          parts_381 += res_383.get
+          pos_382 = mark
+          res_383 = {
+            val pos0_392 = mark
+            val res_393 = for {
+              catPart_394 <- {
+                val pos_396 = mark
+                val res_397 = {
+                  val pos_398 = mark
                   EndOfLine().recoverWith { case p: ParseError =>
-                    reset(pos_450)
-                    Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_450))
+                    reset(pos_398)
+                    Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_398))
                   }
                 }
-                reset(pos_448)
-                if (res_449.isSuccess) Failure(ParseFailed("Neglook failed", pos_448))
+                reset(pos_396)
+                if (res_397.isSuccess) Failure(ParseFailed("Neglook failed", pos_396))
                 else {
                   Try(PEmpty)
                 }
               }
-              catPart_447 <- {
-                val pos_451 = mark
+              catPart_395 <- {
+                val pos_399 = mark
                 any.map { x => PLeaf(x.toString) }
                   .recoverWith { case p: ParseError =>
-                    reset(pos_451)
-                    Failure(p ~ ParseFailed("Expected any char", pos_451))
+                    reset(pos_399)
+                    Failure(p ~ ParseFailed("Expected any char", pos_399))
                   }
               }
-            } yield PBranch("catPart_428", Seq(catPart_446, catPart_447))
-            res_445.recoverWith { case p: ParseError =>
-              reset(pos0_444)
+            } yield PBranch("catPart_376", Seq(catPart_394, catPart_395))
+            res_393.recoverWith { case p: ParseError =>
+              reset(pos0_392)
               Failure(p)
             }
           }
-          res_435.recover { _ => reset(pos_434) }
+          res_383.recover { _ => reset(pos_382) }
         }
-        Try(PBranch("catPart_428", parts_433.toSeq))
+        Try(PBranch("catPart_376", parts_381.toSeq))
       }
-      catPart_429 <- {
-        val pos_452 = mark
-        EndOfLine().recoverWith { case p: ParseError =>
-          reset(pos_452)
-          Failure(p ~ ParseFailed("expected Var 'EndOfLine'", pos_452))
-        }
-      }
-    } yield PBranch("Comment", Seq(catPart_427, catPart_428, catPart_429))
-    res_426.recoverWith { case p: ParseError =>
-      reset(pos0_425)
+      catPart_377 <- EndOfLine()
+    } yield PBranch("Comment", Seq(catPart_375, catPart_376, catPart_377))
+    res_374.recoverWith { case p: ParseError =>
+      reset(pos0_373)
       Failure(p)
     }
   }
 
 
   def AND(): Try[PTree] = {
-    val pos0_453 = mark
-    val res_454 = for {
-      catPart_455 <- {
-        val pos_457 = mark
-        val res_458 = for {
-          char_part_459 <- expect('&')
-        } yield PBranch("Lit", Seq(PLeaf(char_part_459.toString)))
-        res_458.recoverWith { case p: ParseError =>
-          reset(pos_457)
-          Failure(p ~ ParseFailed("expected '&'", pos_457))
+    val pos0_400 = mark
+    val res_401 = for {
+      catPart_402 <- {
+        val pos_404 = mark
+        val res_405 = for {
+          char_part_406 <- expect('&')
+        } yield PBranch("Lit", Seq(PLeaf(char_part_406.toString)))
+        res_405.recoverWith { case p: ParseError =>
+          reset(pos_404)
+          Failure(p ~ ParseFailed("expected '&'", pos_404))
         }
       }
-      catPart_456 <- {
-        val pos_460 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_460)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_460))
-        }
-      }
-    } yield PBranch("AND", Seq(catPart_455, catPart_456))
-    res_454.recoverWith { case p: ParseError =>
-      reset(pos0_453)
+      catPart_403 <- Spacing()
+    } yield PBranch("AND", Seq(catPart_402, catPart_403))
+    res_401.recoverWith { case p: ParseError =>
+      reset(pos0_400)
       Failure(p)
     }
   }
 
 
   def Range(): Try[PTree] = {
-    val pos_461 = mark
-    val res_462 = {
-      val pos0_464 = mark
-      val res_465 = for {
-        catPart_466 <- {
-          val pos_469 = mark
-          Char().recoverWith { case p: ParseError =>
-            reset(pos_469)
-            Failure(p ~ ParseFailed("expected Var 'Char'", pos_469))
+    val pos_407 = mark
+    val res_408 = {
+      val pos0_410 = mark
+      val res_411 = for {
+        catPart_412 <- Char()
+        catPart_413 <- {
+          val pos_415 = mark
+          val res_416 = for {
+            char_part_417 <- expect('-')
+          } yield PBranch("Lit", Seq(PLeaf(char_part_417.toString)))
+          res_416.recoverWith { case p: ParseError =>
+            reset(pos_415)
+            Failure(p ~ ParseFailed("expected '-'", pos_415))
           }
         }
-        catPart_467 <- {
-          val pos_470 = mark
-          val res_471 = for {
-            char_part_472 <- expect('-')
-          } yield PBranch("Lit", Seq(PLeaf(char_part_472.toString)))
-          res_471.recoverWith { case p: ParseError =>
-            reset(pos_470)
-            Failure(p ~ ParseFailed("expected '-'", pos_470))
-          }
-        }
-        catPart_468 <- {
-          val pos_473 = mark
-          Char().recoverWith { case p: ParseError =>
-            reset(pos_473)
-            Failure(p ~ ParseFailed("expected Var 'Char'", pos_473))
-          }
-        }
-      } yield PBranch("Range", Seq(catPart_466, catPart_467, catPart_468))
-      res_465.recoverWith { case p: ParseError =>
-        reset(pos0_464)
+        catPart_414 <- Char()
+      } yield PBranch("Range", Seq(catPart_412, catPart_413, catPart_414))
+      res_411.recoverWith { case p: ParseError =>
+        reset(pos0_410)
         Failure(p)
       }
     }
-    res_462.recoverWith { case err_463: ParseError =>
-      reset(pos_461)
-      val res_474 = {
-        val pos_476 = mark
+    res_408.recoverWith { case err_409: ParseError =>
+      reset(pos_407)
+      val res_418 = {
+        val pos_420 = mark
         Char().recoverWith { case p: ParseError =>
-          reset(pos_476)
-          Failure(p ~ ParseFailed("expected Var 'Char'", pos_476))
+          reset(pos_420)
+          Failure(p ~ ParseFailed("expected Var 'Char'", pos_420))
         }
       }
-      res_474.recoverWith { case err_475: ParseError =>
-        reset(pos_461)
-        Failure(err_463 ~ err_475 ~ ParseFailed("", pos_461))
+      res_418.recoverWith { case err_419: ParseError =>
+        reset(pos_407)
+        Failure(err_409 ~ err_419 ~ ParseFailed("", pos_407))
       }
     }
   }
 
 
   def Grammar(): Try[PTree] = {
-    val pos0_477 = mark
-    val res_478 = for {
-      catPart_479 <- {
-        val pos_482 = mark
-        Spacing().recoverWith { case p: ParseError =>
-          reset(pos_482)
-          Failure(p ~ ParseFailed("expected Var 'Spacing'", pos_482))
-        }
-      }
-      catPart_480 <- {
-        val pos0_483 = mark
-        val res_484 = for {
-          catPart_485 <- {
-            val pos_487 = mark
-            Definition().recoverWith { case p: ParseError =>
-              reset(pos_487)
-              Failure(p ~ ParseFailed("expected Var 'Definition'", pos_487))
-            }
-          }
-          catPart_486 <- {
-            var parts_488 = ArrayBuffer.empty[PTree]
-            var pos_489 = mark
-            var res_490 = {
-              val pos_491 = mark
+    val pos0_421 = mark
+    val res_422 = for {
+      catPart_423 <- Spacing()
+      catPart_424 <- {
+        val pos0_426 = mark
+        val res_427 = for {
+          catPart_428 <- Definition()
+          catPart_429 <- {
+            var parts_430 = ArrayBuffer.empty[PTree]
+            var pos_431 = mark
+            var res_432 = {
+              val pos_433 = mark
               Definition().recoverWith { case p: ParseError =>
-                reset(pos_491)
-                Failure(p ~ ParseFailed("expected Var 'Definition'", pos_491))
+                reset(pos_433)
+                Failure(p ~ ParseFailed("expected Var 'Definition'", pos_433))
               }
             }
-            res_490.recover { _ => reset(pos_489) }
-            while (res_490.isSuccess) {
-              parts_488 += res_490.get
-              pos_489 = mark
-              res_490 = {
-                val pos_492 = mark
+            res_432.recover { _ => reset(pos_431) }
+            while (res_432.isSuccess) {
+              parts_430 += res_432.get
+              pos_431 = mark
+              res_432 = {
+                val pos_434 = mark
                 Definition().recoverWith { case p: ParseError =>
-                  reset(pos_492)
-                  Failure(p ~ ParseFailed("expected Var 'Definition'", pos_492))
+                  reset(pos_434)
+                  Failure(p ~ ParseFailed("expected Var 'Definition'", pos_434))
                 }
               }
-              res_490.recover { _ => reset(pos_489) }
+              res_432.recover { _ => reset(pos_431) }
             }
-            Try(PBranch("catPart_486", parts_488.toSeq))
+            Try(PBranch("catPart_429", parts_430.toSeq))
           }
-        } yield PBranch("catPart_480", Seq(catPart_485, catPart_486))
-        res_484.recoverWith { case p: ParseError =>
-          reset(pos0_483)
+        } yield PBranch("catPart_424", Seq(catPart_428, catPart_429))
+        res_427.recoverWith { case p: ParseError =>
+          reset(pos0_426)
           Failure(p)
         }
       }
-      catPart_481 <- {
-        val pos_493 = mark
-        EndOfFile().recoverWith { case p: ParseError =>
-          reset(pos_493)
-          Failure(p ~ ParseFailed("expected Var 'EndOfFile'", pos_493))
-        }
-      }
-    } yield PBranch("Grammar", Seq(catPart_479, catPart_480, catPart_481))
-    res_478.recoverWith { case p: ParseError =>
-      reset(pos0_477)
+      catPart_425 <- EndOfFile()
+    } yield PBranch("Grammar", Seq(catPart_423, catPart_424, catPart_425))
+    res_422.recoverWith { case p: ParseError =>
+      reset(pos0_421)
       Failure(p)
     }
   }

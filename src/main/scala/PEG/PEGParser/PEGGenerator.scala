@@ -8,6 +8,24 @@ object PEGGenerator extends ParserGenerator {
   override val pack: String = "PEG.PEGParser"
   override val name: String = "GeneratedPEGParser"
 
+
+  def main(args: Array[String]): Unit = {
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+
+    val g = parser.Grammar().map(toAst)
+
+
+    if(g.isFailure) println("parse failed")
+
+    g.foreach{ grammar =>
+      println("parse complete")
+      this.genParserToFile(grammar)
+      println("gen complete")
+    }
+
+  }
+
   def grammar2act(grammar: PTree): Map[String, PEGAst] =
     grammar match {
       case PEmpty => throw new Error()
@@ -30,23 +48,6 @@ object PEGGenerator extends ParserGenerator {
           val expr = tree2ast(expression)
           id -> expr
       }
-
-  def main(args: Array[String]): Unit = {
-    val lexer = new Lexer(source)
-    val parser = new GeneratedPEGParser(lexer)
-
-    val g = parser.Grammar().map(toAst)
-
-
-    if(g.isFailure) println("parse failed")
-
-    g.foreach{ grammar =>
-      println("parse complete")
-      this.genParserToFile(grammar)
-      println("gen complete")
-    }
-
-  }
 
   def tree2ast(tree: PTree): PEGAst =
     tree match {
