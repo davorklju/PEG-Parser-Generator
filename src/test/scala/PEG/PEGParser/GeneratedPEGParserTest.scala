@@ -1,7 +1,6 @@
 package PEG.PEGParser
 
-import PEG.PEGParser.BasePEGParser
-import PEG.ast.{Alt, Cat, Class, Empty, Lit, NegLook, Optional, PEGAst, Plus, PosLook, Star, Var}
+import PEG.ast._
 import PEG.lexparse.Lexer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -49,7 +48,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   "Space" should "support ' ' \\t \\n \\r \\r\\n" in {
     val source = " \t\n\r\r\n"
     val parser = mkParser(source)
-    for(c <- 0.until(5)) {
+    for(_ <- 0.until(5)) {
       assert(parser.Space().isSuccess)
     }
     assert(parser.EndOfFile().isSuccess)
@@ -58,7 +57,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "consume 1 char on ' ' \\t \\n \\r" in {
     val source = " \t\n\r"
     val parser = mkParser(source)
-    for {c <- source} {
+    for {_ <- source} {
       val start = parser.mark
       parser.Space()
       (parser.mark - start) shouldBe 1
@@ -529,7 +528,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     assert( parser.EndOfFile().isSuccess )
   }
 
-  "Grammer" should "support 1 defintion" in {
+  "Grammar" should "support 1 defintion" in {
     val source =
       """
         | E <- F `+` E # addition
@@ -545,7 +544,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
 
     val parser = mkParser(source)
-    parser.Grammer().map(PEGGenerator.grammer2ast) shouldBe Try(expected)
+    parser.Grammar().map(PEGGenerator.grammar2act) shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
@@ -577,7 +576,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
 
     val parser = mkParser(source)
-    parser.Grammer().map(PEGGenerator.grammer2ast) shouldBe Try(expected)
+    parser.Grammar().map(PEGGenerator.grammar2act) shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
@@ -591,7 +590,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val parser = mkParser(source)
-    assert( parser.Grammer().isSuccess )
+    assert( parser.Grammar().isSuccess )
     assert( parser.EndOfFile().isSuccess )
   }
 

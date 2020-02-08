@@ -1,10 +1,7 @@
 package PEG.PEGParser
 
-import PEG.PEGParser.{BasePEGParser, ParserGenerator}
-import PEG.ast.{Empty, PBranch, PEGAst, PEmpty, PLeaf, PTree}
-import PEG.lexparse.{Lexer, ParseFailed}
-
-import scala.util.{Failure, Success}
+import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
+import PEG.lexparse.Lexer
 
 
 sealed trait Expr
@@ -59,13 +56,13 @@ object Expr extends ParserGenerator {
   def main(args: Array[String]): Unit = {
     val lexer = new Lexer(this.source)
     val parser = new GeneratedPEGParser(lexer)
-    val g = parser.Grammer().map(PEGGenerator.toAst)
+    val g = parser.Grammar().map(PEGGenerator.toAst)
     if(g.isFailure) println("parse failed")
     g.foreach(this.genParserToFile)
     println("done")
   }
 
-    val source =
+    val source: String =
       """
         | Stmt <- WS Expr EOF
         |

@@ -1,21 +1,19 @@
 package PEG.PEGParser
 
-import PEG.ast.{Alt, Any, Cat, Class, Empty, Lit, NegLook, Optional, PBranch, PEGAst, PEmpty, PLeaf, PTree, Plus, PosLook, Star, Var}
+import PEG.ast._
 import PEG.lexparse.Lexer
-
-import scala.collection.immutable.{AbstractSeq, LinearSeq}
 
 object PEGGenerator extends ParserGenerator {
   val path = """C:\Users\Davor\IdeaProjects\PEG-Parser\src\main\scala\"""
   override val pack: String = "PEG.PEGParser"
   override val name: String = "GeneratedPEGParser"
 
-  def grammer2ast(grammer: PTree): Map[String, PEGAst] =
-    grammer match {
+  def grammar2act(grammar: PTree): Map[String, PEGAst] =
+    grammar match {
       case PEmpty => throw new Error()
-      case PLeaf(node) => throw new Error()
+      case PLeaf(_) => throw new Error()
 
-      case PBranch("Grammer", List(_, PBranch(_, List(x0, rest)), _)) =>
+      case PBranch("Grammar", List(_, PBranch(_, List(x0, rest)), _)) =>
         val xs = rest match {
           case PBranch(_, Nil) => List.empty
           case PBranch(_, xs) => xs
@@ -26,25 +24,25 @@ object PEGGenerator extends ParserGenerator {
   def def2ast(definition: PTree): (String, PEGAst) =
     definition match {
       case PEmpty => throw new Error()
-      case PLeaf(node) => throw new Error()
+      case PLeaf(_) => throw new Error()
       case PBranch("Definition", List(ident,_,expression)) =>
           val id = flattenNoWS(ident)
           val expr = tree2ast(expression)
-          (id -> expr)
+          id -> expr
       }
 
   def main(args: Array[String]): Unit = {
     val lexer = new Lexer(source)
     val parser = new GeneratedPEGParser(lexer)
 
-    val g = parser.Grammer().map(toAst)
+    val g = parser.Grammar().map(toAst)
 
 
     if(g.isFailure) println("parse failed")
 
-    g.foreach{ grammer =>
+    g.foreach{ grammar =>
       println("parse complete")
-      this.genParserToFile(grammer)
+      this.genParserToFile(grammar)
       println("gen complete")
     }
 
@@ -53,7 +51,7 @@ object PEGGenerator extends ParserGenerator {
   def tree2ast(tree: PTree): PEGAst =
     tree match {
       case PEmpty => throw new Error()
-      case PLeaf(node) => throw new Error()
+      case PLeaf(_) => throw new Error()
 
       case PBranch("Expression", List(e0, PBranch(_,ls))) =>
         val es = ls.toList.map {
@@ -196,7 +194,7 @@ object PEGGenerator extends ParserGenerator {
     }
 
   def toAst(grammer: PTree): Map[String,PEGAst] = {
-    var last = grammer2ast(grammer)
+    var last = grammar2act(grammer)
     var current = last.view.mapValues{simplify}.toMap
     while( last != current ){
       last = current
@@ -209,7 +207,7 @@ object PEGGenerator extends ParserGenerator {
     """
       | # Heierarchical syntax
       |
-      | Grammer    <- Spacing Definition+ EndOfFile
+      | Grammar   <- Spacing Definition+ EndOfFile
       | Definition <- Identifier LEFTARROW Expression
       |
       | Expression <- Sequence (SLASH Sequence)*
