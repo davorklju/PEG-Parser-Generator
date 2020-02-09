@@ -10,6 +10,7 @@ object PEGGenerator extends ParserGenerator {
 
 
   def main(args: Array[String]): Unit = {
+    val source = "E* <- F"
     val lexer = new Lexer(source)
     val parser = new GeneratedPEGParser(lexer)
 
@@ -20,13 +21,13 @@ object PEGGenerator extends ParserGenerator {
 
     g.foreach{ grammar =>
       println("parse complete")
-      this.genParserToFile(grammar)
+//      this.genParserToFile(grammar)
       println("gen complete")
     }
 
   }
 
-  def grammar2act(grammar: PTree): Map[String, PEGAst] =
+  def tree2grammar(grammar: PTree): List[Definition] =
     grammar match {
       case PEmpty => throw new Error()
       case PLeaf(_) => throw new Error()
@@ -36,17 +37,22 @@ object PEGGenerator extends ParserGenerator {
           case PBranch(_, Nil) => List.empty
           case PBranch(_, xs) => xs
         }
-        (x0 :: xs.toList).map(def2ast).toMap
+        (x0 :: xs.toList).map(tree2Def)
     }
 
-  def def2ast(definition: PTree): (String, PEGAst) =
+  def tree2Def(definition: PTree): Definition =
     definition match {
       case PEmpty => throw new Error()
       case PLeaf(_) => throw new Error()
-      case PBranch("Definition", List(ident,_,expression)) =>
-          val id = flattenNoWS(ident)
-          val expr = tree2ast(expression)
-          id -> expr
+      case PBranch("Definition", List(ident,memo,_,expression)) =>
+        val id = flattenNoWS(ident)
+        val expr = tree2ast(expression)
+        memo match{
+          case PEmpty =>
+            Definition(id,memo = false,expr)
+          case PBranch("STAR",_) =>
+            Definition(id,true,expr)
+        }
       }
 
   def tree2ast(tree: PTree): PEGAst =
@@ -194,22 +200,18 @@ object PEGGenerator extends ParserGenerator {
         .fold(List.empty){_ ++ _}
     }
 
-  def toAst(grammer: PTree): Map[String,PEGAst] = {
-    var last = grammar2act(grammer)
-    var current = last.view.mapValues{simplify}.toMap
-    while( last != current ){
-      last = current
-      current = last.view.mapValues{simplify}.toMap
+  def toAst(grammer: PTree): List[Definition] =
+    tree2grammar(grammer).map{
+      case Definition(name,memo,ast) =>
+        Definition(name,memo,normal(ast))
     }
-    current
-  }
 
   val source: String =
     """
       | # Heierarchical syntax
       |
       | Grammar   <- Spacing Definition+ EndOfFile
-      | Definition <- Identifier LEFTARROW Expression
+      | Definition <- Identifier STAR? LEFTARROW Expression
       |
       | Expression <- Sequence (SLASH Sequence)*
       | Sequence   <- Prefix*

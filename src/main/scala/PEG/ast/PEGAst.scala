@@ -1,5 +1,9 @@
 package PEG.ast
 
+
+case class Definition(name: String, memo: Boolean, ast: PEGAst)
+
+
 sealed trait PEGAst
 case class Lit(chars: Seq[Char]) extends PEGAst
 case class Var(name: String) extends PEGAst

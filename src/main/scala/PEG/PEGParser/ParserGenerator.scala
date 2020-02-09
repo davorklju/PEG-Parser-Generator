@@ -1,7 +1,10 @@
 package PEG.PEGParser
 
 import java.io.{File, PrintWriter}
+
 import PEG.ast._
+
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait ParserGenerator {
@@ -11,7 +14,7 @@ trait ParserGenerator {
 
   ///////////////////////////////////////////////////////////////////////
 
-  def genParserToFile( grammer: Map[String,PEGAst] ): Unit = {
+  def genParserToFile( grammer: List[Definition] ): Unit = {
     val str = pack.replaceAll("\\.", "\\\\")
     val fullPath = s"$path\\$str\\$name.scala"
 
@@ -38,7 +41,7 @@ trait ParserGenerator {
 
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  private def genParser( grammer: Map[String,PEGAst] ): ArrayBuffer[String] = {
+  private def genParser( grammer: List[Definition] ): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
 
     buf += s"package $pack"
@@ -51,9 +54,9 @@ trait ParserGenerator {
         |""".stripMargin
 
     buf += s"class $name(lexer: Lexer) extends Parser(lexer){"
-    for( (rule,ast) <- grammer ) {
+    for( Definition(rule,memo,ast) <- grammer ) {
       buf += "\n"
-      buf ++= genGrammer(rule,ast)
+      buf ++= genGrammer(rule,memo,ast)
     }
     buf += "}"
     buf
@@ -70,12 +73,37 @@ trait ParserGenerator {
   }
 
 
-  private def genGrammer(name: String, ast:PEGAst): ArrayBuffer[String] = {
+  private def genGrammer(name: String, memo: Boolean, ast:PEGAst): ArrayBuffer[String] = {
     var buf = ArrayBuffer.empty[String]
+    val parser = freshVar("parser")
 
-    buf += s"def $name(): Try[PTree] = {"
-    buf ++= genAst(name,ast)
-    buf += "}"
+    if(memo){
+      val cache = freshVar("cache")
+      val res = freshVar("res")
+      val pos = freshVar("pos")
+
+      buf += s"def $name(): Try[PTree] = {"
+
+      buf += s"val $cache = HashMap[Int,(PTree,Int)]"
+
+      buf += s"def $parser(): Try[PTree] = {"
+      buf ++= genAst(name,ast)
+      buf += "}"
+
+      buf += s"if(!$cache.contains(mark)){"
+      buf += s"$cache(mark) = $parser()"
+      buf += "}"
+
+      buf += s"val ($res,$pos) = $cache(mark)"
+      buf += s"reset($pos)"
+      buf += res
+
+      buf += "}"
+    } else {
+      buf += s"def $name(): Try[PTree] = {"
+      buf ++= genAst(name,ast)
+      buf += "}"
+    }
 
     buf
   }

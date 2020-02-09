@@ -497,14 +497,16 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected =
-      "Expr" -> Alt(List(
-        Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
-        Var("Int")
-      ))
+      Definition("Expr",false,
+        Alt(List(
+          Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
+          Var("Int")
+        ))
+      )
 
     val parser = mkParser(source)
 
-    parser.Definition().map(PEGGenerator.def2ast) shouldBe Try(expected)
+    parser.Definition().map(PEGGenerator.tree2Def) shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -516,15 +518,29 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected =
-      "Expr" -> Alt(List(
-        Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
-        Var("Int"),
-        Empty
-      ))
+      Definition("Expr",false,
+        Alt(List(
+          Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
+          Var("Int"),
+          Empty
+        ))
+      )
 
     val parser = mkParser(source)
 
-    parser.Definition().map(PEGGenerator.def2ast) shouldBe Try(expected)
+    parser.Definition().map(PEGGenerator.tree2Def) shouldBe Try(expected)
+    assert( parser.EndOfFile().isSuccess )
+  }
+
+  it should "set memo to true one E* <- ..." in {
+    val source = "E* <- F"
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+    val result = parser.Definition().map{x =>
+      PEGGenerator.tree2Def(x)
+    }
+
+    result shouldBe Try( Definition("E",true,Var("F")) )
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -536,15 +552,17 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |
         |""".stripMargin
 
-    val expected = Map(
-      "E" -> Alt(List(
-        Cat(List(Var("F"),Lit(List('+')),Var("E"))),
-        Var("F")
-      ))
+    val expected = List(
+      Definition("E",false,
+        Alt(List(
+          Cat(List(Var("F"),Lit(List('+')),Var("E"))),
+          Var("F")
+        ))
+      )
     )
 
     val parser = mkParser(source)
-    parser.Grammar().map(PEGGenerator.grammar2act) shouldBe Try(expected)
+    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
@@ -563,20 +581,26 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |
         |""".stripMargin
 
-    val expected = Map(
-      "E" -> Alt(List(
-        Cat(List(Var("F"),Lit(List('+')),Var("E"))),
-        Var("F")
-      )),
-      "F" -> Alt(List(
-        Cat(List(Var("I"),Lit(List('*')),Var("F"))),
-        Var("I")
-      )),
-      "I" -> Plus(Class('0'.to('9').toSet))
+    val expected = List(
+      Definition("E",false,
+        Alt(List(
+          Cat(List(Var("F"),Lit(List('+')),Var("E"))),
+          Var("F")
+        ))
+      ) ,
+      Definition("F",false,
+        Alt(List(
+          Cat(List(Var("I"),Lit(List('*')),Var("F"))),
+          Var("I")
+        ))
+      ) ,
+      Definition("I",false,
+        Plus(Class('0'.to('9').toSet))
+      )
     )
 
     val parser = mkParser(source)
-    parser.Grammar().map(PEGGenerator.grammar2act) shouldBe Try(expected)
+    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 

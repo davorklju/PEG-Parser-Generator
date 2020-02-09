@@ -1,6 +1,6 @@
 package PEG.PEGParser
 
-import PEG.ast.PEGAst
+import PEG.ast.{Definition, PEGAst}
 import PEG.lexparse.Lexer
 
 import scala.util.{Failure, Success}
@@ -23,7 +23,7 @@ object CSG extends ParserGenerator {
       | EOF <- !.
       |""".stripMargin
 
-  def getGrammar: Map[String,PEGAst] = {
+  def getGrammar: List[Definition] = {
     val lexer = new Lexer(source)
     //val parser = new BasePEGParser(lexer)
     val parser = new GeneratedPEGParser(lexer)
