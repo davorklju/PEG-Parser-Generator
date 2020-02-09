@@ -205,6 +205,19 @@ trait ParserGenerator {
     buf += s"val $res = for{"
     astsNamed.foreach{ case (name,ast) =>
       ast match {
+        case Lit(List(c)) =>
+          val char = freshVar("char")
+          buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
+        case Lit(chars) =>
+          chars.map{escape}.foreach{ c =>
+            buf += s"_ <- expect($c)"
+          }
+          val res1 = chars.map{escapeDoubleQuote}.map{x => s"PLeaf($x.toString)"}.mkString(",")
+          buf += s""" $name <- Try( PBranch("Lit",Seq($res1)) ) """
+        case Class(chars) =>
+          val char = freshVar("char")
+          val cs = chars.map{ escape }.mkString(",")
+          buf += s"$name <- expect($cs).map{ $char => PLeaf($char.toString) }"
         case Var(ident) =>
           buf += s"$name <- $ident()"
         case _ =>
@@ -228,24 +241,33 @@ trait ParserGenerator {
     val pos = freshVar("pos")
 
     def qqq(asts: Seq[PEGAst], errs: List[String]): Unit =
-      if(asts.isEmpty) {
-        val err0 = s""" ParseFailed("",$pos) """
-        val err = errs.foldLeft(err0){ case (acc,p) => s"$p ~ $acc" }
-        buf += s"Failure($err)"
-      }
-      else {
-        val x = asts.head
-        val res1 = freshVar("res")
-        val err1 = freshVar("err")
+      asts match {
+        case Nil =>
+          val err0 = s""" ParseFailed("",$pos) """
+          val err = errs.foldLeft(err0){ case (acc,p) => s"$p ~ $acc" }
+          buf += s"Failure($err)"
 
-        buf += s"val $res1 = {"
-        buf ++= genAst(name,x)
-        buf += "}"
+        case Empty :: _ =>
+          buf += s" Try(PEmpty) "
 
-        buf += s"$res1.recoverWith{ case $err1: ParseError =>"
-        buf += s"reset($pos)"
-        qqq(asts.tail,err1 :: errs)
-        buf += "}"
+        case Var(ident) :: xs =>
+          val err1 = freshVar("err")
+          buf += s"$ident().recoverWith{ case $err1: ParseError =>"
+          buf += s"reset($pos)"
+          qqq(xs,err1 :: errs)
+          buf += s"}"
+        case x :: xs =>
+          val res1 = freshVar("res")
+          val err1 = freshVar("err")
+
+          buf += s"val $res1 = {"
+          buf ++= genAst(name,x)
+          buf += "}"
+
+          buf += s"$res1.recoverWith{ case $err1: ParseError =>"
+          buf += s"reset($pos)"
+          qqq(xs,err1 :: errs)
+          buf += "}"
       }
 
     buf += s"val $pos = mark"
@@ -259,21 +281,21 @@ trait ParserGenerator {
     val parts = freshVar("parts")
     val pos = freshVar("pos")
     val res = freshVar("res")
+    val subMatch = freshVar("subMatch")
+    buf += s"def $subMatch = {"
+    buf ++= genAst(name,ast)
+    buf += "}"
 
     buf += s"var $parts = ArrayBuffer.empty[PTree]"
     buf += s"var $pos = mark"
-    buf += s"var $res = {"
-    buf ++= genAst(name,ast)
-    buf += "}"
+    buf += s"var $res = $subMatch"
     buf += s"$res.recover{ _ => reset($pos) }"
 
     buf += s"while($res.isSuccess){"
     buf += s"$parts += $res.get"
 
     buf += s"$pos = mark"
-    buf += s"$res = {"
-    buf ++= genAst(name,ast)
-    buf += "}"
+    buf += s"$res = $subMatch"
     buf += s"$res.recover{ _ => reset($pos) }"
 
     buf += "}"
