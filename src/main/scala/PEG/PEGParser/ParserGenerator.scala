@@ -121,6 +121,23 @@ trait ParserGenerator {
     buf
   }
 
+
+  def escape(c: Char): String =
+    c match {
+      case '\n' => s"'\\n'"
+      case '\r' => s"'\\r'"
+      case '\t' => s"'\\t'"
+      case '\'' => s"'\\''"
+      case '\\' => s"'\\\\'"
+      case _ => s"'$c'"
+    }
+
+  def escapeDoubleQuote(c: Char): String =
+    c match {
+      case '\"' => """\""""
+      case _ => escape(c)
+    }
+
   private def genLit(chars: Seq[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
@@ -145,23 +162,6 @@ trait ParserGenerator {
 
     buf
   }
-
-  def escape(c: Char): String =
-    c match {
-      case '\n' => s"'\\n'"
-      case '\r' => s"'\\r'"
-      case '\t' => s"'\\t'"
-      case '\'' => s"'\\''"
-      case '\\' => s"'\\\\'"
-      case _ => s"'$c'"
-    }
-
-  def escapeDoubleQuote(c: Char): String =
-    c match {
-      case '\"' => """\""""
-      case _ => escape(c)
-    }
-
   private def genClass(chars: Set[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
@@ -201,33 +201,36 @@ trait ParserGenerator {
     val astsNamed = asts.map{ x => freshVar("catPart") -> x}
     val names = astsNamed.map(_._1).mkString(",")
 
+
+    def appendToSeq(xs: Seq[(String,PEGAst)]): Unit =
+      xs.foreach{ case (name,ast) =>
+        ast match {
+          case Lit(List(c)) =>
+            val char = freshVar("char")
+            buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
+          case Lit(chars) =>
+            chars.map{escape}.foreach{ c =>
+              buf += s"_ <- expect($c)"
+            }
+            val res1 = chars.map{escapeDoubleQuote}.map{x => s"PLeaf($x.toString)"}.mkString(",")
+            buf += s""" $name <- Try( PBranch("Lit",Seq($res1)) ) """
+          case Class(chars) =>
+            val char = freshVar("char")
+            val cs = chars.map{ escape }.mkString(",")
+            buf += s"$name <- expect($cs).map{ $char => PLeaf($char.toString) }"
+          case Var(ident) =>
+            buf += s"$name <- $ident()"
+          case _ =>
+            buf += s"$name <- {"
+            buf ++= genAst(name,ast)
+            buf += "}"
+        }
+      }
+
     buf += s"val $pos = mark"
     buf += s"val $res = for{"
-    astsNamed.foreach{ case (name,ast) =>
-      ast match {
-        case Lit(List(c)) =>
-          val char = freshVar("char")
-          buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
-        case Lit(chars) =>
-          chars.map{escape}.foreach{ c =>
-            buf += s"_ <- expect($c)"
-          }
-          val res1 = chars.map{escapeDoubleQuote}.map{x => s"PLeaf($x.toString)"}.mkString(",")
-          buf += s""" $name <- Try( PBranch("Lit",Seq($res1)) ) """
-        case Class(chars) =>
-          val char = freshVar("char")
-          val cs = chars.map{ escape }.mkString(",")
-          buf += s"$name <- expect($cs).map{ $char => PLeaf($char.toString) }"
-        case Var(ident) =>
-          buf += s"$name <- $ident()"
-        case _ =>
-          buf += s"$name <- {"
-          buf ++= genAst(name,ast)
-          buf += "}"
-      }
-    }
+    appendToSeq(astsNamed)
     buf += s""" }  yield PBranch("$name",Seq( $names )) """
-
     buf += s"$res.recoverWith{ case p: ParseError => "
     buf += s"reset($pos)"
     buf += s"Failure( p  )"
@@ -249,6 +252,15 @@ trait ParserGenerator {
 
         case Empty :: _ =>
           buf += s" Try(PEmpty) "
+
+        case Lit(List(x)) :: xs =>
+          val char = freshVar("char")
+          val err1 = freshVar("err")
+          buf += s"expect(${escape(x)}).map{ $char => PLeaf($char.toString) }"
+          buf += s".recoverWith{ case $err1: ParseError => "
+          buf += s"reset($pos)"
+          qqq(xs,err1 :: errs)
+          buf += "}"
 
         case Var(ident) :: xs =>
           val err1 = freshVar("err")
@@ -278,7 +290,7 @@ trait ParserGenerator {
   private def genStar(name: String, ast: PEGAst): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
 
-    val parts = freshVar("parts")
+    val parts = freshVar("buf")
     val pos = freshVar("pos")
     val res = freshVar("res")
     val subMatch = freshVar("subMatch")
@@ -312,9 +324,17 @@ trait ParserGenerator {
     val buf = ArrayBuffer.empty[String]
 
     buf += s"val $pos = mark"
-    buf += s"val $res = {"
-    buf ++= genAst(name,ast)
-    buf += "}"
+
+    ast match {
+      case Class(ss) =>
+        buf += s"val $res = expect(${ss.map{escape}.mkString(",")})"
+      case Var(ident) =>
+        buf += s"val $res = $ident()"
+      case _ =>
+        buf += s"val $res = {"
+        buf ++= genAst(name,ast)
+        buf += "}"
+    }
 
     buf += s"reset($pos)"
 
