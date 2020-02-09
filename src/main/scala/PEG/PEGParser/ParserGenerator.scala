@@ -271,6 +271,18 @@ trait ParserGenerator {
           buf += s"reset($pos)"
           qqq(xs,err1 :: errs)
           buf += s"}"
+
+        case Class(chars) :: xs =>
+          val cs = chars.map{ escape }.mkString(",")
+          val char = freshVar("char")
+          val err1 = freshVar("err")
+          buf += s"expect($cs)"
+          buf += s".map{ $char => PLeaf($char.toString)}"
+          buf += s".recoverWith{ case $err1: ParseError =>"
+          buf += s"reset($pos)"
+          qqq(xs,err1::errs)
+          buf += s"}"
+
         case x :: xs =>
           val res1 = freshVar("res")
           val err1 = freshVar("err")
