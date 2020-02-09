@@ -2,6 +2,7 @@ package PEG.PEGParser
 
 import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
 import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
+import PEG.lexparse.ParseError.implicits._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Try}
@@ -15,7 +16,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_73 <- Expr()
       catPart_74 <- EOF()
     } yield PBranch("Stmt", Seq(catPart_72, catPart_73, catPart_74))
-    res_71.recoverWith { case p: ParseError =>
+    res_71.recoverWith { case p: ParseError[Char] =>
       reset(pos0_70)
       Failure(p)
     }
@@ -30,14 +31,14 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
         catPart_14 <- PLUS()
         catPart_15 <- Expr()
       } yield PBranch("Expr", Seq(catPart_13, catPart_14, catPart_15))
-      res_12.recoverWith { case p: ParseError =>
+      res_12.recoverWith { case p: ParseError[Char] =>
         reset(pos0_11)
         Failure(p)
       }
     }
-    res_9.recoverWith { case err_10: ParseError =>
+    res_9.recoverWith { case err_10: ParseError[Char] =>
       reset(pos_8)
-      Fact().recoverWith { case err_16: ParseError =>
+      Fact().recoverWith { case err_16: ParseError[Char] =>
         reset(pos_8)
         Failure(err_10 ~ err_16 ~ ParseFailed("", pos_8))
       }
@@ -53,14 +54,14 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
         catPart_33 <- PROD()
         catPart_34 <- Fact()
       } yield PBranch("Fact", Seq(catPart_32, catPart_33, catPart_34))
-      res_31.recoverWith { case p: ParseError =>
+      res_31.recoverWith { case p: ParseError[Char] =>
         reset(pos0_30)
         Failure(p)
       }
     }
-    res_28.recoverWith { case err_29: ParseError =>
+    res_28.recoverWith { case err_29: ParseError[Char] =>
       reset(pos_27)
-      Term().recoverWith { case err_35: ParseError =>
+      Term().recoverWith { case err_35: ParseError[Char] =>
         reset(pos_27)
         Failure(err_29 ~ err_35 ~ ParseFailed("", pos_27))
       }
@@ -73,14 +74,14 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_3 <- {
         val pos_5 = mark
         expect('-').map { char_6 => PLeaf(char_6.toString) }
-          .recoverWith { case err_7: ParseError =>
+          .recoverWith { case err_7: ParseError[Char] =>
             reset(pos_5)
             Try(PEmpty)
           }
       }
       catPart_4 <- Lit()
     } yield PBranch("Term", Seq(catPart_3, catPart_4))
-    res_2.recoverWith { case p: ParseError =>
+    res_2.recoverWith { case p: ParseError[Char] =>
       reset(pos0_1)
       Failure(p)
     }
@@ -93,9 +94,9 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
         catPart_52 <- Expr()
         catPart_53 <- CLOSE()
       } yield PBranch("Lit", Seq(catPart_51, catPart_52, catPart_53))
-    res_47.recoverWith { case err_48: ParseError =>
+    res_47.recoverWith { case err_48: ParseError[Char] =>
       reset(pos_46)
-      Int().recoverWith { case err_54: ParseError =>
+      Int().recoverWith { case err_54: ParseError[Char] =>
         reset(pos_46)
         Failure(err_48 ~ err_54 ~ ParseFailed("", pos_46))
       }
@@ -114,7 +115,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
               val pos_68 = mark
               expect('6', '9', '2', '8', '4', '0', '5', '1', '7', '3')
                 .map { char_69 => PLeaf(char_69.toString) }
-                .recoverWith { case p: ParseError =>
+                .recoverWith { case p: ParseError[Char] =>
                   reset(pos_68)
                   Failure(p ~ ParseFailed("Expected one of '6','9','2','8','4','0','5','1','7','3'", pos_68))
                 }
@@ -133,14 +134,14 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
             Try(PBranch("catPart_62", buf_64.toSeq))
           }
         } yield PBranch("catPart_57", Seq(catPart_61, catPart_62))
-        res_60.recoverWith { case p: ParseError =>
+        res_60.recoverWith { case p: ParseError[Char] =>
           reset(pos0_59)
           Failure(p)
         }
       }
       catPart_58 <- WS()
     } yield PBranch("Int", Seq(catPart_57, catPart_58))
-    res_56.recoverWith { case p: ParseError =>
+    res_56.recoverWith { case p: ParseError[Char] =>
       reset(pos0_55)
       Failure(p)
     }
@@ -153,7 +154,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_19 <- expect('+').map { char_21 => PLeaf(char_21.toString) }
       catPart_20 <- WS()
     } yield PBranch("PLUS", Seq(catPart_19, catPart_20))
-    res_18.recoverWith { case p: ParseError =>
+    res_18.recoverWith { case p: ParseError[Char] =>
       reset(pos0_17)
       Failure(p)
     }
@@ -165,7 +166,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_43 <- expect('*').map { char_45 => PLeaf(char_45.toString) }
       catPart_44 <- WS()
     } yield PBranch("PROD", Seq(catPart_43, catPart_44))
-    res_42.recoverWith { case p: ParseError =>
+    res_42.recoverWith { case p: ParseError[Char] =>
       reset(pos0_41)
       Failure(p)
     }
@@ -177,7 +178,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_38 <- expect('(').map { char_40 => PLeaf(char_40.toString) }
       catPart_39 <- WS()
     } yield PBranch("OPEN", Seq(catPart_38, catPart_39))
-    res_37.recoverWith { case p: ParseError =>
+    res_37.recoverWith { case p: ParseError[Char] =>
       reset(pos0_36)
       Failure(p)
     }
@@ -189,7 +190,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       catPart_24 <- expect(')').map { char_26 => PLeaf(char_26.toString) }
       catPart_25 <- WS()
     } yield PBranch("CLOSE", Seq(catPart_24, catPart_25))
-    res_23.recoverWith { case p: ParseError =>
+    res_23.recoverWith { case p: ParseError[Char] =>
       reset(pos0_22)
       Failure(p)
     }
@@ -200,7 +201,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
       val pos_82 = mark
       expect(' ', '\t', '\n', '\r')
         .map { char_83 => PLeaf(char_83.toString) }
-        .recoverWith { case p: ParseError =>
+        .recoverWith { case p: ParseError[Char] =>
           reset(pos_82)
           Failure(p ~ ParseFailed("Expected one of ' ','\t','\n','\r'", pos_82))
         }
@@ -224,7 +225,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
     val res_76 = {
       val pos_77 = mark
       any.map { x => PLeaf(x.toString) }
-        .recoverWith { case p: ParseError =>
+        .recoverWith { case p: ParseError[Char] =>
           reset(pos_77)
           Failure(p ~ ParseFailed("Expected any char", pos_77))
         }

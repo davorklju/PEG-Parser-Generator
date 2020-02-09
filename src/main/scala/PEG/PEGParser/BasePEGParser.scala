@@ -2,6 +2,7 @@ package PEG.PEGParser
 
 import PEG.ast.{Optional, PEGAst, Plus, Star}
 import PEG.lexparse._
+import PEG.lexparse.ParseError.implicits._
 
 import scala.util.{Failure, Try}
 
@@ -34,7 +35,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       ps <- many{ () => Definition() }
       _ <- EndOfFile()
     } yield ps.toMap
-    x0.recoverWith{ case p: ParseError =>
+    x0.recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Failure(p)
     }
@@ -47,7 +48,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       _ <- LEFTARROW()
       e <- Expression()
     } yield (id,e)
-    x0.recoverWith{ case p: ParseError =>
+    x0.recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Failure(p)
     }
@@ -74,7 +75,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       case IndexedSeq(x) => x
       case xs => PEG.ast.Alt(xs)
     }
-    .recoverWith{ case p: ParseError =>
+    .recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Failure(p)
     }
@@ -103,12 +104,12 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
   def Prefix(): Try[PEGAst] = {
     val pos0 = mark
     AND().flatMap{ _ => Suffix().map{x => PEG.ast.PosLook(x)} }
-      .recoverWith{ case p1: ParseError =>
+      .recoverWith{ case p1: ParseError[Char] =>
         reset(pos0)
         NOT().flatMap{ _ => Suffix().map{x => PEG.ast.NegLook(x)} }
-          .recoverWith{ case p2: ParseError =>
+          .recoverWith{ case p2: ParseError[Char] =>
             reset(pos0)
-            Suffix().recoverWith{ case p3: ParseError =>
+            Suffix().recoverWith{ case p3: ParseError[Char] =>
               Failure(p1~p2~p3)
             }
           }
@@ -120,19 +121,19 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
     Primary().flatMap{ y =>
       val pos1 = mark
       QUESTION().map{ _ => Optional(y)}
-        .recoverWith{ case _: ParseError =>
+        .recoverWith{ case _: ParseError[Char] =>
           reset(pos1)
           STAR().map{ _ => Star(y)}
-            .recoverWith{ case _: ParseError =>
+            .recoverWith{ case _: ParseError[Char] =>
               reset(pos1)
               PLUS().map{ _ => Plus(y)}
-                .recoverWith{ case _: ParseError =>
+                .recoverWith{ case _: ParseError[Char] =>
                   reset(pos1)
                   Try(y)
                 }
             }
         }
-    }.recoverWith{ case p: ParseError =>
+    }.recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Failure( p )
     }
@@ -140,19 +141,19 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
 
   def Primary(): Try[PEGAst] = {
     val pos0 = mark
-    Literal().recoverWith{ case p1: ParseError =>
+    Literal().recoverWith{ case p1: ParseError[Char] =>
       reset(pos0)
-      Class().recoverWith{ case p2: ParseError =>
+      Class().recoverWith{ case p2: ParseError[Char] =>
         reset(pos0)
         DOT().map{_ => PEG.ast.Any}
-          .recoverWith{ case p3: ParseError =>
+          .recoverWith{ case p3: ParseError[Char] =>
             reset(pos0)
             val x1 = for{
               _ <- OPEN()
               e <- Expression()
               _ <- CLOSE()
             } yield e
-            x1.recoverWith{ case p4: ParseError =>
+            x1.recoverWith{ case p4: ParseError[Char] =>
               reset(pos0)
               val x2 = Ident().flatMap{ y =>
                 val pos1 = mark
@@ -161,7 +162,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
                 if(x3.isSuccess) Try(throw ParseFailed("",pos1))
                 else Try(y)
               }
-              x2.recoverWith{ case p5:ParseError =>
+              x2.recoverWith{ case p5:ParseError[Char] =>
                 Try( throw p1 ~ p2 ~ p3 ~ p4 ~ p5)
               }
             }
@@ -177,7 +178,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       cs <- many{ () => IdentPart() }
       _ <- Spaces()
     } yield PEG.ast.Var((c0 +: cs).mkString(""))
-    x0.recoverWith{ case _: ParseError =>
+    x0.recoverWith{ case _: ParseError[Char] =>
       reset(pos0)
       Try( throw ParseFailed("Expected Ident",pos0) )
     }
@@ -197,9 +198,9 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
   def IdentPart(): Try[Char] = {
     val pos0 = mark
     val x0 = IdentStart()
-    x0.recoverWith{ case p1: ParseError =>
+    x0.recoverWith{ case p1: ParseError[Char] =>
       reset(pos0)
-      expect('0',"123456789".toList:_*).recoverWith{ case p2: ParseError =>
+      expect('0',"123456789".toList:_*).recoverWith{ case p2: ParseError[Char] =>
           Try( throw p1 ~ p2 )
       }
     }
@@ -214,7 +215,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       if(x0.isSuccess){ Try( throw ParseFailed("",pos0)) }
       else {
         val x1 = char()
-        x1.recoverWith{ case p: ParseError =>
+        x1.recoverWith{ case p: ParseError[Char] =>
           reset(pos0)
           Try(throw p)
         }
@@ -280,7 +281,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       case '\\' => '\\'
       case _ => c
     }
-    x0.recoverWith{ case p1: ParseError =>
+    x0.recoverWith{ case p1: ParseError[Char] =>
       reset(pos0)
       val x1 = expect('\\')
       if (x1.isSuccess) {
@@ -288,7 +289,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
         Try(throw p1 ~ ParseFailed("Unexpected \\", pos0))
       } else {
         reset(pos0)
-        any.recoverWith{ case p2: ParseError =>
+        any.recoverWith{ case p2: ParseError[Char] =>
           Try(throw p1 ~ p2)
         }
       }
@@ -302,7 +303,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       _ <- expect('-')
       _ <- Spaces()
     } yield ()
-    x0.recoverWith{ case p: ParseError =>
+    x0.recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Try(throw p ~ ParseFailed("Expeced LEFTARROW", pos0))
     }
@@ -315,7 +316,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       _ <- Spaces()
     } yield ()
     x0.recoverWith{
-      case p: ParseError =>
+      case p: ParseError[Char] =>
         reset(pos0)
         Try( throw p ~ ParseFailed(s"Expected $c",pos0))
     }
@@ -343,10 +344,10 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
     def spaceOrComment: Try[Unit] = {
       val pos0 = mark
       val x0 = Space()
-      x0.recoverWith{ case p1: ParseError =>
+      x0.recoverWith{ case p1: ParseError[Char] =>
         reset(pos0)
         val x1 = Comment()
-        x1.recoverWith{ case p2: ParseError =>
+        x1.recoverWith{ case p2: ParseError[Char] =>
           reset(pos0)
           Try(throw p1 ~ p2 ~ ParseFailed("Expected Space or Comment", pos0))
         }
@@ -388,7 +389,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       _ <- EndOfLine()
     } yield ()
 
-    x1.recoverWith{ case p: ParseError =>
+    x1.recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
       Try(throw p ~ ParseFailed("Expected comment", pos0))
     }
@@ -409,10 +410,10 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       _ <- expect('\r')
       _ <- expect('\n')
     } yield ()
-    x0.recoverWith{ case p1: ParseError =>
+    x0.recoverWith{ case p1: ParseError[Char] =>
       reset(pos0)
       val x1 = expect('\r', '\n').map { _ => () }
-      x1.recoverWith{ case p2: ParseError =>
+      x1.recoverWith{ case p2: ParseError[Char] =>
         reset(pos0)
         Try { throw p1 ~ p2 ~ ParseFailed("expected", pos0) }
       }

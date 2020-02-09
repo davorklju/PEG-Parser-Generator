@@ -5,6 +5,8 @@ import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Try}
 
+import PEG.lexparse.ParseError.implicits._
+
 class CSGGenerated(lexer: Lexer) extends Parser(lexer){
 
 
@@ -17,12 +19,12 @@ catPart_6 <- expect('a').map{ char_9 => PLeaf(char_9.toString) }
 catPart_7 <- A()
 catPart_8 <- expect('b').map{ char_10 => PLeaf(char_10.toString) }
  }  yield PBranch("A",Seq( catPart_6,catPart_7,catPart_8 )) 
-res_5.recoverWith{ case p: ParseError => 
+res_5.recoverWith{ case p: ParseError[_] =>
 reset(pos0_4)
 Failure( p  )
 }
 }
-res_2.recoverWith{ case err_3: ParseError =>
+res_2.recoverWith{ case err_3: ParseError[Char] =>
 reset(pos_1)
  Try(PEmpty) 
 }
@@ -38,12 +40,12 @@ catPart_16 <- expect('b').map{ char_19 => PLeaf(char_19.toString) }
 catPart_17 <- B()
 catPart_18 <- expect('c').map{ char_20 => PLeaf(char_20.toString) }
  }  yield PBranch("B",Seq( catPart_16,catPart_17,catPart_18 )) 
-res_15.recoverWith{ case p: ParseError => 
+res_15.recoverWith{ case p: ParseError[Char] =>
 reset(pos0_14)
 Failure( p  )
 }
 }
-res_12.recoverWith{ case err_13: ParseError =>
+res_12.recoverWith{ case err_13: ParseError[Char] =>
 reset(pos_11)
  Try(PEmpty) 
 }
@@ -68,7 +70,7 @@ val pos_37= mark
 val res_38 = for{
 char_part_39 <- expect('b')
  } yield PBranch("Lit",Seq( PLeaf(char_part_39.toString) )) 
-res_38.recoverWith{ case p: ParseError =>
+res_38.recoverWith{ case p: ParseError[Char] =>
 reset(pos_37)
  Failure( p ~ ParseFailed("expected 'b'",pos_37) ) 
 }
@@ -78,7 +80,7 @@ if( res_36.isSuccess ) Failure(ParseFailed("Neglook failed",pos_35))
  else { Try(PEmpty) }
 }
  }  yield PBranch("catPart_23",Seq( catPart_33,catPart_34 )) 
-res_32.recoverWith{ case p: ParseError => 
+res_32.recoverWith{ case p: ParseError[Char] =>
 reset(pos0_31)
 Failure( p  )
 }
@@ -97,7 +99,7 @@ val pos_44= mark
 val res_45 = for{
 char_part_46 <- expect('a')
  } yield PBranch("Lit",Seq( PLeaf(char_part_46.toString) )) 
-res_45.recoverWith{ case p: ParseError =>
+res_45.recoverWith{ case p: ParseError[Char] =>
 reset(pos_44)
  Failure( p ~ ParseFailed("expected 'a'",pos_44) ) 
 }
@@ -117,7 +119,7 @@ res_42.recover{ _ => reset(pos_41) }
 catPart_25 <- B()
 catPart_26 <- EOF()
  }  yield PBranch("D",Seq( catPart_23,catPart_24,catPart_25,catPart_26 )) 
-res_22.recoverWith{ case p: ParseError => 
+res_22.recoverWith{ case p: ParseError[Char] =>
 reset(pos0_21)
 Failure( p  )
 }
@@ -129,7 +131,7 @@ val pos_47 = mark
 val res_48 = {
 val pos_49 = mark
 any.map{ x => PLeaf(x.toString)  }
-.recoverWith{ case p: ParseError =>
+.recoverWith{ case p: ParseError[Char] =>
 reset(pos_49)
  Failure( p ~ ParseFailed("Expected any char",pos_49) )  
 }

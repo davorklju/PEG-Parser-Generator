@@ -2,19 +2,27 @@ package PEG.lexparse
 
 import scala.util.Try
 
-sealed trait ParseError extends Exception{
-  def ~(rhs: ParseError): ParseError = (this,rhs) match {
-    case (ParseFailed(m1,p1),ParseFailed(m2,p2)) =>
-      ParseFailed(s"$m1 at $p1\n$m2",p2)
-    case (_,p@ParseFailed(_,_)) => p
-    case (p@ParseFailed(_,_),_) => p
-    case (_,p) => p
+sealed trait ParseError[+t] extends Exception
+
+object ParseError{
+
+  object implicits{
+    implicit class ParseErrorImpl[t](val self: ParseError[t]){
+      def ~(rhs: ParseError[t]): ParseError[t] = (self,rhs) match {
+        case (ParseFailed(m1,p1),ParseFailed(m2,p2)) =>
+          ParseFailed(s"$m1 at $p1\n$m2",p2).asInstanceOf[ParseError[t]]
+        case (_,p@ParseFailed(_,_)) => p
+        case (p@ParseFailed(_,_),_) => p
+        case (_,p) => p
+      }
+    }
   }
+
 }
-case class UnexpectedEOF(pos: Int) extends ParseError
-case class ExpectedOneOf(chars: List[Char], pos: Int) extends ParseError
-case class NotExpectedOneOf(chars: List[Char], pos: Int) extends ParseError
-case class ParseFailed(reason: String, pos: Int) extends ParseError
+case class UnexpectedEOF(pos: Int) extends ParseError[Nothing]
+case class ExpectedOneOf[t](chars: List[t], pos: Int) extends ParseError[t]
+case class NotExpectedOneOf[t](chars: List[t], pos: Int) extends ParseError[t]
+case class ParseFailed(reason: String, pos: Int) extends ParseError[Nothing]
 
 class Parser(val lexer: Lexer) {
   def mark: Int =

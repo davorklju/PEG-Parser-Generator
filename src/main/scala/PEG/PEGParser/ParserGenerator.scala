@@ -45,7 +45,7 @@ trait ParserGenerator {
     buf +=
       """import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
         |import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
-        |
+        |import PEG.lexparse.ParseError.implicits._
         |import scala.collection.mutable.ArrayBuffer
         |import scala.util.{Failure, Try}
         |""".stripMargin
@@ -113,7 +113,7 @@ trait ParserGenerator {
     val pos = freshVar("pos")
 
     buf += s"val $pos = mark"
-    buf += s"$ident().recoverWith{ case p: ParseError =>"
+    buf += s"$ident().recoverWith{ case p: ParseError[Char] =>"
     buf += s"reset($pos)"
     buf += s""" Failure( p ~ ParseFailed("expected Var '$ident'",$pos) ) """
     buf += "}"
@@ -155,7 +155,7 @@ trait ParserGenerator {
       buf += s"$v <- expect($expect)"
     }
     buf += s""" } yield PBranch("Lit",Seq($children)) """
-    buf += s"$res.recoverWith{ case p: ParseError =>"
+    buf += s"$res.recoverWith{ case p: ParseError[Char] =>"
     buf += s"reset($pos)"
     buf += s""" Failure( p ~ ParseFailed("expected $err",$pos) ) """
     buf += "}"
@@ -173,7 +173,7 @@ trait ParserGenerator {
     buf += s"val $pos = mark"
     buf += s"expect($cs)"
     buf += s".map{ $char => PLeaf($char.toString)}"
-    buf += s".recoverWith{ case p: ParseError =>"
+    buf += s".recoverWith{ case p: ParseError[Char] =>"
     buf += s"reset($pos)"
     buf += s""" Failure( p ~ ParseFailed("Expected one of $err",$pos) ) """
     buf += s"}"
@@ -186,7 +186,7 @@ trait ParserGenerator {
 
     buf += s"val $pos = mark"
     buf += s"any.map{ x => PLeaf(x.toString)  }"
-    buf += s".recoverWith{ case p: ParseError =>"
+    buf += s".recoverWith{ case p: ParseError[Char] =>"
     buf += s"reset($pos)"
     buf += s""" Failure( p ~ ParseFailed("Expected any char",$pos) )  """
     buf += "}"
@@ -234,7 +234,7 @@ trait ParserGenerator {
     buf += s"val $res = for{"
     appendToSeq(astsNamed)
     buf += s""" }  yield PBranch("$name",Seq( $names )) """
-    buf += s"$res.recoverWith{ case p: ParseError => "
+    buf += s"$res.recoverWith{ case p: ParseError[Char] => "
     buf += s"reset($pos)"
     buf += s"Failure( p  )"
     buf += "}"
@@ -260,14 +260,14 @@ trait ParserGenerator {
           val char = freshVar("char")
           val err1 = freshVar("err")
           buf += s"expect(${escape(x)}).map{ $char => PLeaf($char.toString) }"
-          buf += s".recoverWith{ case $err1: ParseError => "
+          buf += s".recoverWith{ case $err1: ParseError[Char] => "
           buf += s"reset($pos)"
           qqq(xs,err1 :: errs)
           buf += "}"
 
         case Var(ident) :: xs =>
           val err1 = freshVar("err")
-          buf += s"$ident().recoverWith{ case $err1: ParseError =>"
+          buf += s"$ident().recoverWith{ case $err1: ParseError[Char] =>"
           buf += s"reset($pos)"
           qqq(xs,err1 :: errs)
           buf += s"}"
@@ -278,7 +278,7 @@ trait ParserGenerator {
           val err1 = freshVar("err")
           buf += s"expect($cs)"
           buf += s".map{ $char => PLeaf($char.toString)}"
-          buf += s".recoverWith{ case $err1: ParseError =>"
+          buf += s".recoverWith{ case $err1: ParseError[Char] =>"
           buf += s"reset($pos)"
           qqq(xs,err1::errs)
           buf += s"}"
@@ -291,7 +291,7 @@ trait ParserGenerator {
           buf ++= genAst(name,x)
           buf += "}"
 
-          buf += s"$res1.recoverWith{ case $err1: ParseError =>"
+          buf += s"$res1.recoverWith{ case $err1: ParseError[Char] =>"
           buf += s"reset($pos)"
           qqq(xs,err1 :: errs)
           buf += "}"
