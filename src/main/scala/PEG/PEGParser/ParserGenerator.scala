@@ -205,6 +205,9 @@ trait ParserGenerator {
     def appendToSeq(xs: Seq[(String,PEGAst)]): Unit =
       xs.foreach{ case (name,ast) =>
         ast match {
+          case Any =>
+            val char = freshVar("char")
+            buf += s"$name <- any.map{ $char => PLeaf($char.toString)}"
           case Lit(List(c)) =>
             val char = freshVar("char")
             buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
@@ -294,9 +297,15 @@ trait ParserGenerator {
     val pos = freshVar("pos")
     val res = freshVar("res")
     val subMatch = freshVar("subMatch")
-    buf += s"def $subMatch = {"
-    buf ++= genAst(name,ast)
-    buf += "}"
+
+    ast match {
+      case Var(x) =>
+        buf += s"def $subMatch = $x()"
+      case _ =>
+        buf += s"def $subMatch = {"
+        buf ++= genAst(name,ast)
+        buf += "}"
+    }
 
     buf += s"var $parts = ArrayBuffer.empty[PTree]"
     buf += s"var $pos = mark"
