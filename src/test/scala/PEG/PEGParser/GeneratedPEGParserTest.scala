@@ -373,6 +373,12 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     assert(parser.Primary().isFailure)
   }
 
+  it should "fail if STAR LEFTARROW follow Ident" in {
+    val source = "Expr* <-"
+    val parser = mkParser(source)
+    assert(parser.Primary().isFailure)
+  }
+
   "Suffix" should "anything followed by a ?" in {
     val ps = Map(
       "Expr ? " -> Optional(Var("Expr")),

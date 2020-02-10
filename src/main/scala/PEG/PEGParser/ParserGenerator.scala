@@ -49,6 +49,7 @@ trait ParserGenerator {
       """import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
         |import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
         |import PEG.lexparse.ParseError.implicits._
+        |import scala.collection.mutable
         |import scala.collection.mutable.ArrayBuffer
         |import scala.util.{Failure, Try}
         |""".stripMargin
@@ -80,18 +81,19 @@ trait ParserGenerator {
     if(memo){
       val cache = freshVar("cache")
       val res = freshVar("res")
+      val init = freshVar("init")
       val pos = freshVar("pos")
 
+      buf += s"val $cache = mutable.HashMap.empty[Int,(Try[PTree],Int)]"
       buf += s"def $name(): Try[PTree] = {"
-
-      buf += s"val $cache = HashMap[Int,(PTree,Int)]"
-
-      buf += s"def $parser(): Try[PTree] = {"
-      buf ++= genAst(name,ast)
-      buf += "}"
+        buf += s"def $parser(): Try[PTree] = {"
+        buf ++= genAst(name,ast)
+        buf += "}"
 
       buf += s"if(!$cache.contains(mark)){"
-      buf += s"$cache(mark) = $parser()"
+      buf += s"val $init = mark"
+      buf += s"$cache($init) = $parser() -> mark"
+      buf += s"reset($init)"
       buf += "}"
 
       buf += s"val ($res,$pos) = $cache(mark)"

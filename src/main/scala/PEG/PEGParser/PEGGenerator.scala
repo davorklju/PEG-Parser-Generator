@@ -10,18 +10,16 @@ object PEGGenerator extends ParserGenerator {
 
 
   def main(args: Array[String]): Unit = {
-    val source = "E* <- F"
     val lexer = new Lexer(source)
     val parser = new GeneratedPEGParser(lexer)
 
     val g = parser.Grammar().map(toAst)
 
-
     if(g.isFailure) println("parse failed")
 
     g.foreach{ grammar =>
       println("parse complete")
-//      this.genParserToFile(grammar)
+      this.genParserToFile(grammar)
       println("gen complete")
     }
 
@@ -51,7 +49,7 @@ object PEGGenerator extends ParserGenerator {
           case PEmpty =>
             Definition(id,memo = false,expr)
           case PBranch("STAR",_) =>
-            Definition(id,true,expr)
+            Definition(id,memo = true,expr)
         }
       }
 
@@ -217,7 +215,7 @@ object PEGGenerator extends ParserGenerator {
       | Sequence   <- Prefix*
       | Prefix     <- (AND / NOT)? Suffix
       | Suffix     <- Primary (QUESTION / STAR / PLUS)?
-      | Primary    <- Identifier !LEFTARROW
+      | Primary*    <- Identifier !(STAR? LEFTARROW)
       |             / OPEN Expression CLOSE
       |             / Literal / Class / DOT
       |
