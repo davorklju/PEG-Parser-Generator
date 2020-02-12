@@ -59,12 +59,11 @@ object PEGGenerator extends ParserGenerator {
       case PEmpty => throw new Error()
       case PLeaf(_) => throw new Error()
 
-      case PBranch("ExprPart", List(expr,act)) =>
-        if(act == PEmpty) tree2ast(expr)
-        else {
-          val (retType,args,body) = flattenAction(act).get
-          Action(tree2ast(expr),retType,args,body)
-        }
+      case PBranch("ExprPart", List(seq,act)) =>
+        val ast = tree2ast(seq)
+        flattenAction(act)
+          .map{ case (a,b,c) => Action(ast,a,b,c)}
+          .getOrElse(ast)
 
       case PBranch("ExprWithAction", List(e0, PBranch(_,ls))) =>
         val es = ls.toList.map {
@@ -238,7 +237,13 @@ object PEGGenerator extends ParserGenerator {
       |
       | ExprWithAction <- ExprPart (SLASH ExprPart)*
       | ExprPart       <- Sequence Action?
-      | Action         <- OPENCURLY (![|}] .)+ VERTBAR Identifier* VERTBAR (![}] .)* CLOSECURLY
+      |
+      | #
+      | # E <- S E2 { List[PEGAst] | x xs | x :: xs }
+      | #
+      | # E2 <- E {List[PEGAst]| xs | xs }
+      | #    /   {List[PEGAst]|    | [] }
+      | #
       |
       | Expression <- Sequence (SLASH Sequence)*
       | Sequence   <- Prefix*
@@ -252,6 +257,8 @@ object PEGGenerator extends ParserGenerator {
       | Identifier <- IdentStart IdentCont* Spacing
       | IdentStart <- [a-zA-Z_]
       | IdentCont  <- IdentStart / [0-9]
+      |
+      | Action         <- OPENCURLY (![|}] .)+ VERTBAR Identifier* VERTBAR (![}] .)* CLOSECURLY
       |
       | Literal <- ['] (!['] Char)* ['] Spacing
       |          / ["] (!["] Char)* ["] Spacing

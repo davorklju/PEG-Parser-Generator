@@ -150,9 +150,8 @@ trait ParserGenerator {
   @scala.annotation.tailrec
   private def genAst(name: String, ast: PEGAst): ArrayBuffer[String] =
     ast match {
-
       case Action(expr,_,args,body) =>
-        genAction(expr,args,body)
+        genAction(name,expr,args,body)
 
       case Var(ident) => genVar(ident)
       case Lit(chars) => genLit(chars)
@@ -256,38 +255,9 @@ trait ParserGenerator {
     val astsNamed = asts.map{ x => freshVar("catPart") -> x}
     val names = astsNamed.map(_._1).mkString(",")
 
-
-    def appendToSeq(xs: Seq[(String,PEGAst)]): Unit =
-      xs.foreach{ case (name,ast) =>
-        ast match {
-          case Any =>
-            val char = freshVar("char")
-            buf += s"$name <- any.map{ $char => PLeaf($char.toString)}"
-          case Lit(List(c)) =>
-            val char = freshVar("char")
-            buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
-          case Lit(chars) =>
-            chars.map{escape}.foreach{ c =>
-              buf += s"_ <- expect($c)"
-            }
-            val res1 = chars.map{escapeDoubleQuote}.map{x => s"PLeaf($x.toString)"}.mkString(",")
-            buf += s""" $name <- Try( PBranch("Lit",Seq($res1)) ) """
-          case Class(chars) =>
-            val char = freshVar("char")
-            val cs = chars.map{ escape }.mkString(",")
-            buf += s"$name <- expect($cs).map{ $char => PLeaf($char.toString) }"
-          case Var(ident) =>
-            buf += s"$name <- $ident()"
-          case _ =>
-            buf += s"$name <- {"
-            buf ++= genAst(name,ast)
-            buf += "}"
-        }
-      }
-
     buf += s"val $pos = mark"
     buf += s"val $res = for{"
-    appendToSeq(astsNamed)
+    appendToSeq(buf,astsNamed)
     buf += s""" }  yield PBranch("$name",Seq( $names )) """
     buf += s"$res.recoverWith{ case p: ParseError[Char] => "
     buf += s"reset($pos)"
@@ -296,6 +266,35 @@ trait ParserGenerator {
 
     buf
   }
+
+  private def appendToSeq(buf: ArrayBuffer[String], xs: Seq[(String,PEGAst)]): Unit =
+    xs.foreach{ case (name,ast) =>
+      ast match {
+        case Any =>
+          val char = freshVar("char")
+          buf += s"$name <- any.map{ $char => PLeaf($char.toString)}"
+        case Lit(List(c)) =>
+          val char = freshVar("char")
+          buf += s"$name <- expect(${escape(c)}).map{ $char => PLeaf($char.toString) }"
+        case Lit(chars) =>
+          chars.map{escape}.foreach{ c =>
+            buf += s"_ <- expect($c)"
+          }
+          val res1 = chars.map{escapeDoubleQuote}.map{x => s"PLeaf($x.toString)"}.mkString(",")
+          buf += s""" $name <- Try( PBranch("Lit",Seq($res1)) ) """
+        case Class(chars) =>
+          val char = freshVar("char")
+          val cs = chars.map{ escape }.mkString(",")
+          buf += s"$name <- expect($cs).map{ $char => PLeaf($char.toString) }"
+        case Var(ident) =>
+          buf += s"$name <- $ident()"
+        case _ =>
+          buf += s"$name <- {"
+          buf ++= genAst(name,ast)
+          buf += "}"
+      }
+    }
+
 
   private def genAlt(name: String, asts: Seq[PEGAst]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
@@ -420,16 +419,42 @@ trait ParserGenerator {
     buf
   }
 
-  def genAction(expr: PEGAst,args: List[String],body: String): ArrayBuffer[String] = {
-    val buf = ArrayBuffer.empty[String]
-    val res = freshVar("res")
-    buf += s"{"
-    buf ++= genAst(name,expr)
-    buf += "}"
-    buf += s".map{ case PBranch(_, List(${args.mkString(",")})) => "
-    buf += body
-    buf += "}"
+  def genAction(name: String, expr: PEGAst,args: List[String],body: String): ArrayBuffer[String] = {
+    expr match {
+      case Empty =>
+        val buf = ArrayBuffer.empty[String]
+        buf += s"Try{$body}"
+      case Cat(asts) =>
+        val buf = ArrayBuffer.empty[String]
 
-    buf
+        val pos = freshVar("pos")
+        val res = freshVar("res")
+
+        buf += s"val $pos = mark"
+        buf += s"val $res = for{"
+        appendToSeq(buf,args.zip(asts))
+        buf += s"} yield ($body)"
+
+        buf += s"$res.recoverWith{ case p: ParseError[Char] => "
+        buf += s"reset($pos)"
+        buf += s"Failure(p)"
+        buf += "}"
+        buf
+      case _ =>
+        val buf = ArrayBuffer.empty[String]
+        val argument =
+          if(args.isEmpty) "Nil"
+          else if(args.size == 1) args.head
+          else s"List(${args.mkString(",")})"
+
+        buf += s"{"
+        buf ++= genAst(name,expr)
+        buf += "}"
+        buf += s".map{ case PBranch(_, $argument) => "
+        buf += body
+        buf += "}"
+
+        buf
+    }
   }
 }
