@@ -5,7 +5,7 @@ import PEG.lexparse.Lexer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
 
@@ -495,7 +495,85 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(expected)
     assert(parser.EndOfFile().isSuccess)
   }
+/////////////////////////////////////////////////////////////////////
+  "Action" should "be between { and } and have 2 seperators |" in {
+    val source = "{int|x y| x + y}"
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+    val result = parser.Action().map{PEGGenerator.flattenAction}
+    result match {
+      case Failure(exception) => throw exception
+      case Success(value) =>
+        value shouldBe Option( ("int",List("x","y"),"x + y") )
+    }
+  }
 
+  it should "support wild and crazy types" in {
+    val typeL = "Either[List[Int],Try[Set[Boolean]]]"
+
+    val source = s"{ $typeL | p | q } "
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+    val result = parser.Action().map{PEGGenerator.flattenAction}
+    result match {
+      case Failure(exception) => throw exception
+      case Success(value) =>
+        value shouldBe Option(( typeL, List("p"), "q "))
+    }
+  }
+
+  "ExprPart" should "match a Sequence with no Action" in {
+    val mp = Map(
+      "x" -> Var("x"),
+      "'hello'" -> Lit("hello".toSeq),
+      "[a-z]?" -> Optional(Class('a'.to('z').toSet)),
+      "&(!P+)" -> PosLook(NegLook(Plus(Var("P")))),
+      "x `hello` &(!P+) [a-z]?" -> Cat(List(
+            Var("x"),
+            Lit("hello".toSeq),
+            PosLook(NegLook(Plus(Var("P")))),
+            Optional(Class('a'.to('z').toSet))
+          ))
+    )
+    for( (source,expected) <- mp ){
+      val lexer = new Lexer(source)
+      val parser = new GeneratedPEGParser(lexer)
+      val result = parser.ExprPart().map{PEGGenerator.tree2ast}
+      result match {
+        case Failure(exception) => throw exception
+        case Success(value) =>
+          value shouldBe expected
+      }
+    }
+  }
+
+  it should "match a Sequence with an Action" in {
+    val mp = Map(
+      "x {p | q | r}" -> Action(Var("x"),"p",List("q"),"r"),
+      "'hello' {p||}" -> Action(Lit("hello".toList),"p",Nil,""),
+      "[a-z]? {QQQ|asd|123}" -> Action(Optional(Class('a'.to('z').toSet))
+                    ,"QQQ",List("asd"),"123"),
+      "&(!P+) {  z  ||}" -> Action(PosLook(NegLook(Plus(Var("P"))))
+                    , "z",Nil,""),
+      "x `hello` &(!P+) [a-z]? {string| x h p a| concat(x,h,p,a) }" -> Action(Cat(List(
+        Var("x"),
+        Lit("hello".toSeq),
+        PosLook(NegLook(Plus(Var("P")))),
+        Optional(Class('a'.to('z').toSet))
+      )), "string",List("x","h","p","a"),"concat(x,h,p,a) ")
+    )
+    for( (source,expected) <- mp ){
+      val lexer = new Lexer(source)
+      val parser = new GeneratedPEGParser(lexer)
+      val result = parser.ExprPart().map{PEGGenerator.tree2ast}
+      result match {
+        case Failure(exception) => throw exception
+        case Success(value) =>
+          value shouldBe expected
+      }
+    }
+  }
+  /////////////////////////////////////////////////////////////////////
   "Definition" should " work " in {
     val source =
       """Expr <- Expr `+` Expr
@@ -602,6 +680,48 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       ) ,
       Definition("I",false,
         Plus(Class('0'.to('9').toSet))
+      )
+    )
+
+    val parser = mkParser(source)
+    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
+    assert( parser.EndOfFile().isSuccess)
+  }
+
+
+  it should "support actions on every toplevel alt" in {
+    val source =
+      """
+        | E <- F `+` E {int|f e| f + e} # addition
+        |    / F
+        |
+        | F <- I `*` F {int | i f | i * f } #multiplication
+        |    / I
+        |
+        | I <- [0-9]+ {int| str | flattenNoWS(str).toInt } # an int
+        |
+        | # akjsdlkjasldjlasjk
+        |
+        |""".stripMargin
+
+    val expected = List(
+      Definition("E",false,
+        Alt(List(
+          Action( Cat(List(Var("F"),Lit(List('+')),Var("E")))
+                ,"int",List("f","e"),"f + e"),
+          Var("F")
+        ))
+      ) ,
+      Definition("F",false,
+        Alt(List(
+          Action( Cat(List(Var("I"),Lit(List('*')),Var("F")))
+                ,"int", List("i","f"),"i * f " ),
+          Var("I")
+        ))
+      ) ,
+      Definition("I",false,
+        Action( Plus(Class('0'.to('9').toSet))
+          , "int",List("str"),"flattenNoWS(str).toInt ")
       )
     )
 

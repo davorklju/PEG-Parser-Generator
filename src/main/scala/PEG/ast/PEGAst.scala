@@ -5,6 +5,10 @@ case class Definition(name: String, memo: Boolean, ast: PEGAst)
 
 
 sealed trait PEGAst
+
+case class Action (ast: PEGAst, retType: String,args: List[String],body: String)
+  extends PEGAst
+
 case class Lit(chars: Seq[Char]) extends PEGAst
 case class Var(name: String) extends PEGAst
 

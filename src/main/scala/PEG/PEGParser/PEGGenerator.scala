@@ -58,6 +58,20 @@ object PEGGenerator extends ParserGenerator {
       case PEmpty => throw new Error()
       case PLeaf(_) => throw new Error()
 
+      case PBranch("ExprPart", List(expr,act)) =>
+        if(act == PEmpty) tree2ast(expr)
+        else {
+          val (retType,args,body) = flattenAction(act).get
+          Action(tree2ast(expr),retType,args,body)
+        }
+
+      case PBranch("ExprWithAction", List(e0, PBranch(_,ls))) =>
+        val es = ls.toList.map {
+          case PBranch(_,List (PBranch("SLASH", _), e)) => e
+        }
+        if(es.isEmpty) tree2ast(e0)
+        else Alt((e0 :: es).map(tree2ast))
+
       case PBranch("Expression", List(e0, PBranch(_,ls))) =>
         val es = ls.toList.map {
           case PBranch(_,List (PBranch("SLASH", _), e)) => e
@@ -96,9 +110,8 @@ object PEGGenerator extends ParserGenerator {
           tree2ast(e)
       }
 
-      case PBranch("Identifier", id) =>
-        val str = id.map(flattenNoWS).mkString("")
-        Var(str)
+      case PBranch("Identifier", List(start,cont,_)) =>
+        Var( s"${flattenNoWS(start)}${flattenNoWS(cont)}" )
 
       case PBranch("Literal",List(_,lit,_,_)) =>
         Lit(flattenChars(lit))
@@ -198,6 +211,17 @@ object PEGGenerator extends ParserGenerator {
         .fold(List.empty){_ ++ _}
     }
 
+  def flattenAction(tree: PTree): Option[(String,List[String],String)] =
+    tree match {
+      case PEmpty => Option.empty
+      case PBranch("Action", List(_,reType,_,args,_,body,_)) =>
+        val list: List[String] = flatten(args).split(" ").toList
+        val list2 = if(list == List("")) Nil else list
+        val str = flattenNoWS(reType).replaceAll(" ", "")
+        Option((str,list2,flatten(body)))
+      case _ => throw new Error()
+    }
+
   def toAst(grammer: PTree): List[Definition] =
     tree2grammar(grammer).map{
       case Definition(name,memo,ast) =>
@@ -209,7 +233,11 @@ object PEGGenerator extends ParserGenerator {
       | # Heierarchical syntax
       |
       | Grammar   <- Spacing Definition+ EndOfFile
-      | Definition <- Identifier STAR? LEFTARROW Expression
+      | Definition <- Identifier STAR? LEFTARROW ExprWithAction
+      |
+      | ExprWithAction <- ExprPart (SLASH ExprPart)*
+      | ExprPart       <- Sequence Action?
+      | Action         <- OPENCURLY (![|}] .)+ VERTBAR Identifier* VERTBAR (![}] .)* CLOSECURLY
       |
       | Expression <- Sequence (SLASH Sequence)*
       | Sequence   <- Prefix*
@@ -242,6 +270,9 @@ object PEGGenerator extends ParserGenerator {
       | OPEN      <- '(' Spacing
       | CLOSE     <- ')' Spacing
       | DOT       <- '.' Spacing
+      | OPENCURLY <- '{' Spacing
+      | CLOSECURLY<- '}' Spacing
+      | VERTBAR   <- '|' Spacing
       |
       | Spacing   <- (Space / Comment)*
       | Comment   <- '#' (!EndOfLine .)* EndOfLine

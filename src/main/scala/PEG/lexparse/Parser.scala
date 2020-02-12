@@ -1,8 +1,9 @@
 package PEG.lexparse
 
+import PEG.PEGParser.PEGGenerator
+
 import scala.util.Try
 
-sealed trait ParseError[+t] extends Exception
 
 object ParseError{
 
@@ -19,10 +20,20 @@ object ParseError{
   }
 
 }
-case class UnexpectedEOF(pos: Int) extends ParseError[Nothing]
-case class ExpectedOneOf[t](chars: List[t], pos: Int) extends ParseError[t]
-case class NotExpectedOneOf[t](chars: List[t], pos: Int) extends ParseError[t]
-case class ParseFailed(reason: String, pos: Int) extends ParseError[Nothing]
+
+sealed abstract class ParseError[+t](errMsg: String) extends Exception(errMsg)
+
+case class UnexpectedEOF(pos: Int)
+  extends ParseError[Nothing](s"UnExpected at $pos")
+
+case class ExpectedOneOf[t](chars: List[t], pos: Int)
+  extends ParseError[t]( s"ExpectedOneOf ${chars.mkString(",")} at $pos")
+
+case class NotExpectedOneOf[t](chars: List[t], pos: Int)
+  extends ParseError[t]( s"Not ExpectedOneOf ${chars.mkString(",")} at $pos")
+
+case class ParseFailed(reason: String, pos: Int)
+  extends ParseError[Nothing](s"$reason at $pos")
 
 class Parser(val lexer: Lexer) {
   def mark: Int =
