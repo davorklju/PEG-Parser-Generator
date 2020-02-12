@@ -1,6 +1,7 @@
-package PEG.PEGParser
+package PEG.generators
 
-import PEG.ast.{Definition, PEGAst}
+import PEG.PEGParser.GeneratedPEGParser
+import PEG.ast.Definition
 import PEG.lexparse.Lexer
 
 import scala.util.{Failure, Success}

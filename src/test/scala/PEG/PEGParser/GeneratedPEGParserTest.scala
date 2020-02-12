@@ -1,6 +1,7 @@
 package PEG.PEGParser
 
 import PEG.ast._
+import PEG.generators.PEGGenerator
 import PEG.lexparse.Lexer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

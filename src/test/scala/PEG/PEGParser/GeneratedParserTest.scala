@@ -1,8 +1,9 @@
 package PEG.PEGParser
 
 import PEG.PEGParser.CSGGenerated
-import PEG.PEGParser.Expr.mkInt
+import PEG.generators.Expr.mkInt
 import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
+import PEG.generators.{Add, CSG, Expr, I, Mul, Neg}
 import PEG.lexparse.{Lexer, ParseFailed}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

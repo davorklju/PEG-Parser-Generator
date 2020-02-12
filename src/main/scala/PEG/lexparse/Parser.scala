@@ -1,6 +1,6 @@
 package PEG.lexparse
 
-import PEG.PEGParser.PEGGenerator
+import PEG.generators.PEGGenerator
 
 import scala.util.Try
 

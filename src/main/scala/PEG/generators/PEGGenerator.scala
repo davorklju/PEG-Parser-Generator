@@ -1,5 +1,6 @@
-package PEG.PEGParser
+package PEG.generators
 
+import PEG.PEGParser.GeneratedPEGParser
 import PEG.ast._
 import PEG.lexparse.Lexer
 

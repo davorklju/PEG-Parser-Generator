@@ -1,10 +1,9 @@
-package PEG.PEGParser
+package PEG.generators
 
 import java.io.{File, PrintWriter}
 
 import PEG.ast._
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait ParserGenerator {
@@ -39,6 +38,21 @@ trait ParserGenerator {
       case PBranch(_, children) => children.map(flatten).mkString("")
     }
 
+  def escape(c: Char): String =
+    c match {
+      case '\n' => s"'\\n'"
+      case '\r' => s"'\\r'"
+      case '\t' => s"'\\t'"
+      case '\'' => s"'\\''"
+      case '\\' => s"'\\\\'"
+      case _ => s"'$c'"
+    }
+
+  def escapeDoubleQuote(c: Char): String =
+    c match {
+      case '\"' => """\""""
+      case _ => escape(c)
+    }
   ///////////////////////////////////////////////////////////////////////////////////////
 
   private def genParser( grammer: List[Definition] ): ArrayBuffer[String] = {
@@ -74,19 +88,42 @@ trait ParserGenerator {
   }
 
 
+  private def getTypes(ast: PEGAst): Set[String] =
+    ast match {
+      case Action(_, retType, _, _) => Set(retType)
+
+      case Star(ast) => getTypes(ast)
+      case Plus(ast) => getTypes(ast)
+      case PosLook(ast) => getTypes(ast)
+      case NegLook(ast) => getTypes(ast)
+      case Optional(ast) => getTypes(ast)
+
+      case Cat(asts) => asts.map{getTypes}.fold(Set.empty){_ union _}
+      case Alt(asts) => asts.map{getTypes}.fold(Set.empty){_ union _}
+
+      case _ => Set.empty
+    }
+
   private def genGrammer(name: String, memo: Boolean, ast:PEGAst): ArrayBuffer[String] = {
     var buf = ArrayBuffer.empty[String]
-    val parser = freshVar("parser")
+
+    val types = getTypes(ast)
+
+    val retType =
+      if(types.isEmpty) "PTree"
+      else if (types.size == 1) types.head
+      else throw new Error(s"Action in the same definition cannot have different types ${types.mkString(",")}")
 
     if(memo){
+      val parser = freshVar("parser")
       val cache = freshVar("cache")
       val res = freshVar("res")
       val init = freshVar("init")
       val pos = freshVar("pos")
 
-      buf += s"val $cache = mutable.HashMap.empty[Int,(Try[PTree],Int)]"
-      buf += s"def $name(): Try[PTree] = {"
-        buf += s"def $parser(): Try[PTree] = {"
+      buf += s"val $cache = mutable.HashMap.empty[Int,(Try[$retType],Int)]"
+      buf += s"def $name(): Try[$retType] = {"
+        buf += s"def $parser(): Try[$retType] = {"
         buf ++= genAst(name,ast)
         buf += "}"
 
@@ -102,7 +139,7 @@ trait ParserGenerator {
 
       buf += "}"
     } else {
-      buf += s"def $name(): Try[PTree] = {"
+      buf += s"def $name(): Try[$retType] = {"
       buf ++= genAst(name,ast)
       buf += "}"
     }
@@ -113,6 +150,10 @@ trait ParserGenerator {
   @scala.annotation.tailrec
   private def genAst(name: String, ast: PEGAst): ArrayBuffer[String] =
     ast match {
+
+      case Action(expr,_,args,body) =>
+        genAction(expr,args,body)
+
       case Var(ident) => genVar(ident)
       case Lit(chars) => genLit(chars)
       case Class(chars) => genClass(chars)
@@ -151,22 +192,6 @@ trait ParserGenerator {
     buf
   }
 
-
-  def escape(c: Char): String =
-    c match {
-      case '\n' => s"'\\n'"
-      case '\r' => s"'\\r'"
-      case '\t' => s"'\\t'"
-      case '\'' => s"'\\''"
-      case '\\' => s"'\\\\'"
-      case _ => s"'$c'"
-    }
-
-  def escapeDoubleQuote(c: Char): String =
-    c match {
-      case '\"' => """\""""
-      case _ => escape(c)
-    }
 
   private def genLit(chars: Seq[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
@@ -391,6 +416,19 @@ trait ParserGenerator {
 
     buf += s"""if( $res.isSuccess ) Failure(ParseFailed("Neglook failed",$pos))"""
     buf += s" else { Try(PEmpty) }"
+
+    buf
+  }
+
+  def genAction(expr: PEGAst,args: List[String],body: String): ArrayBuffer[String] = {
+    val buf = ArrayBuffer.empty[String]
+    val res = freshVar("res")
+    buf += s"{"
+    buf ++= genAst(name,expr)
+    buf += "}"
+    buf += s".map{ case PBranch(_, List(${args.mkString(",")})) => "
+    buf += body
+    buf += "}"
 
     buf
   }
