@@ -2,7 +2,7 @@ package PEG.generators
 
 import java.io.{File, PrintWriter}
 
-import PEG.ast._
+import PEG.data._
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -60,12 +60,14 @@ trait ParserGenerator {
 
     buf += s"package $pack"
     buf +=
-      """import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
-        |import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
-        |import PEG.lexparse.ParseError.implicits._
+      """
+        |import PEG.lexparse.{Lexer, Parser}
+        |import PEG.data.implicits._
+        |import PEG.data._
         |import scala.collection.mutable
         |import scala.collection.mutable.ArrayBuffer
         |import scala.util.{Failure, Try}
+        |
         |""".stripMargin
 
     buf += s"class $name(lexer: Lexer) extends Parser(lexer){"
@@ -191,7 +193,6 @@ trait ParserGenerator {
     buf
   }
 
-
   private def genLit(chars: Seq[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
@@ -216,6 +217,7 @@ trait ParserGenerator {
 
     buf
   }
+
   private def genClass(chars: Set[Char]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
@@ -295,7 +297,6 @@ trait ParserGenerator {
       }
     }
 
-
   private def genAlt(name: String, asts: Seq[PEGAst]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
     val pos = freshVar("pos")
@@ -362,7 +363,7 @@ trait ParserGenerator {
     val parts = freshVar("buf")
     val pos = freshVar("pos")
     val res = freshVar("res")
-    val subMatch = freshVar("subMatch")
+    val subMatch = freshVar(s"${name}_sub")
 
     ast match {
       case Var(x) =>
@@ -442,15 +443,16 @@ trait ParserGenerator {
         buf
       case _ =>
         val buf = ArrayBuffer.empty[String]
-        val argument =
-          if(args.isEmpty) "Nil"
-          else if(args.size == 1) args.head
-          else s"List(${args.mkString(",")})"
+//        val argument =
+//          if(args.isEmpty) "Nil"
+//          else if(args.size == 1) args.head
+//          else s"List(${args.mkString(",")})"
 
         buf += s"{"
         buf ++= genAst(name,expr)
         buf += "}"
-        buf += s".map{ case PBranch(_, $argument) => "
+//        buf += s".map{ case PBranch(_, $argument) => "
+        buf += s".map{ case (${args.mkString(",")}) => "
         buf += body
         buf += "}"
 

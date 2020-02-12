@@ -1,4 +1,4 @@
-package PEG.ast
+package PEG.data
 
 
 case class Definition(name: String, memo: Boolean, ast: PEGAst)

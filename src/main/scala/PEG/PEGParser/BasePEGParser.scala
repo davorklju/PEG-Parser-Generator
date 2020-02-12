@@ -1,8 +1,9 @@
 package PEG.PEGParser
 
-import PEG.ast.{Optional, PEGAst, Plus, Star}
+import PEG.data.{Optional, PEGAst, Plus, Star}
 import PEG.lexparse._
-import PEG.lexparse.ParseError.implicits._
+import PEG.data.implicits._
+import PEG.data._
 
 import scala.util.{Failure, Try}
 
@@ -44,7 +45,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
   def Definition(): Try[(String,PEGAst)] = {
     val pos0 = mark
     val x0 = for{
-      PEG.ast.Var(id) <- Ident()
+      PEG.data.Var(id) <- Ident()
       _ <- LEFTARROW()
       e <- Expression()
     } yield (id,e)
@@ -73,7 +74,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
 
     x0.map{
       case IndexedSeq(x) => x
-      case xs => PEG.ast.Alt(xs)
+      case xs => PEG.data.Alt(xs)
     }
     .recoverWith{ case p: ParseError[Char] =>
       reset(pos0)
@@ -96,17 +97,17 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
     }
 
     if(buf.isEmpty)
-      Spaces().flatMap{ _ => Try( PEG.ast.Empty ) }
+      Spaces().flatMap{ _ => Try( PEG.data.Empty ) }
     else if(buf.tail.isEmpty) Try( buf(0))
-    else Try( PEG.ast.Cat(buf) )
+    else Try( PEG.data.Cat(buf) )
   }
 
   def Prefix(): Try[PEGAst] = {
     val pos0 = mark
-    AND().flatMap{ _ => Suffix().map{x => PEG.ast.PosLook(x)} }
+    AND().flatMap{ _ => Suffix().map{x => PEG.data.PosLook(x)} }
       .recoverWith{ case p1: ParseError[Char] =>
         reset(pos0)
-        NOT().flatMap{ _ => Suffix().map{x => PEG.ast.NegLook(x)} }
+        NOT().flatMap{ _ => Suffix().map{x => PEG.data.NegLook(x)} }
           .recoverWith{ case p2: ParseError[Char] =>
             reset(pos0)
             Suffix().recoverWith{ case p3: ParseError[Char] =>
@@ -145,7 +146,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       reset(pos0)
       Class().recoverWith{ case p2: ParseError[Char] =>
         reset(pos0)
-        DOT().map{_ => PEG.ast.Any}
+        DOT().map{_ => PEG.data.Any}
           .recoverWith{ case p3: ParseError[Char] =>
             reset(pos0)
             val x1 = for{
@@ -177,7 +178,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
       c0 <- IdentStart()
       cs <- many{ () => IdentPart() }
       _ <- Spaces()
-    } yield PEG.ast.Var((c0 +: cs).mkString(""))
+    } yield PEG.data.Var((c0 +: cs).mkString(""))
     x0.recoverWith{ case _: ParseError[Char] =>
       reset(pos0)
       Try( throw ParseFailed("Expected Ident",pos0) )
@@ -239,7 +240,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
         for {
           x <- tr
           _ <- Spaces()
-        } yield PEG.ast.Lit(x)
+        } yield PEG.data.Lit(x)
       }
       .getOrElse(Try(throw ParseFailed("Failed to parse Lit", mark)))
   }
@@ -248,7 +249,7 @@ class BasePEGParser(lexer: Lexer) extends Parser(lexer) {
     manyCharBetween('[', () => expect(']'), () => Range())
       .map { l: Vector[List[Char]] =>
         val q: Set[Char] = l.map{ _.toSet[Char] }.fold(Set.empty)(_ union _)
-        PEG.ast.Class(q)
+        PEG.data.Class(q)
       }
       .flatMap{ x =>
         Spaces().map{_ => x}

@@ -1,8 +1,9 @@
 package PEG.PEGParser
 
-import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
-import PEG.lexparse.{Lexer, ParseError, ParseFailed, Parser}
-import PEG.lexparse.ParseError.implicits._
+import PEG.data.{PBranch, PEmpty, PLeaf, PTree}
+import PEG.lexparse.{Lexer , Parser}
+import PEG.data._
+import PEG.data.implicits._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Try}

@@ -1,7 +1,7 @@
 package PEG.PEGParser
 
 import PEG.PEGParser.BasePEGParser
-import PEG.ast.{Alt, Cat, Class, Empty, Lit, NegLook, Optional, Plus, PosLook, Star, Var}
+import PEG.data.{Alt, Cat, Class, Empty, Lit, NegLook, Optional, Plus, PosLook, Star, Var}
 import PEG.lexparse.Lexer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -334,7 +334,7 @@ class PEGParserTest extends AnyFlatSpec with Matchers {
   "Primany" should "be a dot `.`" in {
     val source = "."
     val parser: BasePEGParser = mkParser(source)
-    parser.Primary() shouldBe Try(PEG.ast.Any)
+    parser.Primary() shouldBe Try(PEG.data.Any)
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -342,7 +342,7 @@ class PEGParserTest extends AnyFlatSpec with Matchers {
     val source = "[+/_()0-9\\]]"
     val parser = mkParser(source)
     val expected = "+/_()]".toSet union '0'.to('9').toSet
-    parser.Primary() shouldBe Try(PEG.ast.Class(expected))
+    parser.Primary() shouldBe Try(PEG.data.Class(expected))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -465,7 +465,7 @@ class PEGParserTest extends AnyFlatSpec with Matchers {
 
   "Expression" should "Empty on empty string" in {
     val parser = mkParser("    ")
-    parser.Expression() shouldBe Try(PEG.ast.Empty)
+    parser.Expression() shouldBe Try(PEG.data.Empty)
   }
 
   it should "have no alt wrap for 1 alt" in {
@@ -486,7 +486,7 @@ class PEGParserTest extends AnyFlatSpec with Matchers {
       Alt( List(
         Cat(List(Var("A1"),Var("A2"))),
         Cat(List(Var("B1"),Var("B2"))),
-        PEG.ast.Empty
+        PEG.data.Empty
       ) )
 
     parser.Expression() shouldBe Try(expected)

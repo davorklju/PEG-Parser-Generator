@@ -1,7 +1,7 @@
 package PEG.generators
 
 import PEG.PEGParser.GeneratedPEGParser
-import PEG.ast._
+import PEG.data._
 import PEG.lexparse.Lexer
 
 object PEGGenerator extends ParserGenerator {
@@ -80,7 +80,7 @@ object PEGGenerator extends ParserGenerator {
         else Alt((e0 :: es).map(tree2ast))
 
       case PBranch("Sequence",ss) => ss match {
-        case Nil => PEG.ast.Empty
+        case Nil => PEG.data.Empty
         case x :: Nil => tree2ast(x)
         case _  => Cat(ss.map(tree2ast))
       }
@@ -214,8 +214,8 @@ object PEGGenerator extends ParserGenerator {
   def flattenAction(tree: PTree): Option[(String,List[String],String)] =
     tree match {
       case PEmpty => Option.empty
-      case PBranch("Action", List(_,reType,_,args,_,body,_)) =>
-        val list: List[String] = flatten(args).split(" ").toList
+      case PBranch("Action", List(_,reType,_,PBranch(_,args),_,body,_)) =>
+        val list: List[String] = args.map{flattenNoWS}.toList
         val list2 = if(list == List("")) Nil else list
         val str = flattenNoWS(reType).replaceAll(" ", "")
         Option((str,list2,flatten(body)))
@@ -258,7 +258,10 @@ object PEGGenerator extends ParserGenerator {
       | IdentStart <- [a-zA-Z_]
       | IdentCont  <- IdentStart / [0-9]
       |
-      | Action         <- OPENCURLY (![|}] .)+ VERTBAR Identifier* VERTBAR (![}] .)* CLOSECURLY
+      | Action         <- OPENCURLY (![|}] .)+ VERTBAR ActionIdent* VERTBAR (![}] .)* CLOSECURLY
+      |
+      | ActionIdent <- Identifier OPEN ActionIdent (COMMA ActionIdent)* CLOSE
+      |              / Identifier
       |
       | Literal <- ['] (!['] Char)* ['] Spacing
       |          / ["] (!["] Char)* ["] Spacing
@@ -281,6 +284,7 @@ object PEGGenerator extends ParserGenerator {
       | OPENCURLY <- '{' Spacing
       | CLOSECURLY<- '}' Spacing
       | VERTBAR   <- '|' Spacing
+      | COMMA     <- ',' Spacing
       |
       | Spacing   <- (Space / Comment)*
       | Comment   <- '#' (!EndOfLine .)* EndOfLine

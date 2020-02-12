@@ -1,7 +1,7 @@
 package PEG.generators
 
 import PEG.PEGParser.GeneratedPEGParser
-import PEG.ast.{PBranch, PEmpty, PLeaf, PTree}
+import PEG.data.{PBranch, PEmpty, PLeaf, PTree}
 import PEG.lexparse.Lexer
 
 

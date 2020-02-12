@@ -2,6 +2,7 @@ package PEG.generators
 
 import PEG.PEGParser.GeneratedPEGParser
 import PEG.lexparse.Lexer
+import PEG.generators._
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,7 +39,7 @@ object ExprWithAction extends ParserGenerator {
        |      / MINUS Lit {Int| _ e| -e}
        |      / Int
        |
-       | Int <- [0-9]+ WS { Int | xs _ |  PEGGenerator.flattenNoWS(xs).toInt  }
+       | Int <- [0-9]+ WS { Int | PBranch(_,xs) _ | xs.map(PEGGenerator.flattenNoWS).mkString("").toInt }
        |
        | MINUS <- '-' WS
        | PLUS  <- '+' WS
@@ -50,6 +51,7 @@ object ExprWithAction extends ParserGenerator {
        |
        | EOF <- !.
        |
+       | ######################################################
        |
        | QQQ <- WS Start EOF { List[Int] | _ x _ | x}
        |
@@ -58,6 +60,19 @@ object ExprWithAction extends ParserGenerator {
        | Follow <- PLUS Start { List[Int] | _ x | x}
        |         /    { List[Int] | | Nil }
        |
+       | ######################################################
+       |
+       |  IE <- Int { Expr | x | I(x) }
+       |
+       |  LE <- MINUS EE { Expr | _ x | Neg(x) }
+       |      / OPEN EE CLOSE { Expr | _ x _ | x }
+       |      / IE
+       |
+       | FE <- LE TIMES FE {Expr | a _ b| Mul(a,b) }
+       |     / LE
+       |
+       | EE <- FE PLUS EE { Expr | a _ b | Add(a,b) }
+       |     / FE
        |
        | """.stripMargin
 

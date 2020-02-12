@@ -1,7 +1,7 @@
 package PEG.generators
 
 import PEG.PEGParser.GeneratedPEGParser
-import PEG.ast.Definition
+import PEG.data.Definition
 import PEG.lexparse.Lexer
 
 import scala.util.{Failure, Success}

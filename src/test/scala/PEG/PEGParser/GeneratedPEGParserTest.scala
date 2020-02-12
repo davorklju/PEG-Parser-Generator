@@ -1,6 +1,6 @@
 package PEG.PEGParser
 
-import PEG.ast._
+import PEG.data._
 import PEG.generators.PEGGenerator
 import PEG.lexparse.Lexer
 import org.scalatest.flatspec.AnyFlatSpec
@@ -331,7 +331,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   "Primany" should "be a dot `.`" in {
     val source = "."
     val parser = mkParser(source)
-    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.ast.Any)
+    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Any)
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -339,7 +339,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "[+/_()0-9\\]]"
     val parser = mkParser(source)
     val expected = "+/_()]".toSet union '0'.to('9').toSet
-    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.ast.Class(expected))
+    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Class(expected))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -471,7 +471,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
 
   "Expression" should "Empty on empty string" in {
     val parser = mkParser("    ")
-    parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(PEG.ast.Empty)
+    parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Empty)
   }
 
   it should "have no alt wrap for 1 alt" in {
@@ -490,7 +490,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       Alt( List(
         Cat(List(Var("A1"),Var("A2"))),
         Cat(List(Var("B1"),Var("B2"))),
-        PEG.ast.Empty
+        PEG.data.Empty
       ) )
 
     parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(expected)
@@ -520,6 +520,30 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       case Failure(exception) => throw exception
       case Success(value) =>
         value shouldBe Option(( typeL, List("p"), "q "))
+    }
+  }
+
+  it should "support compplex arguments" in {
+    val source = "{ qqq | a(b(c),d(e)) f g | ppp}"
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+    val result = parser.Action().map{PEGGenerator.flattenAction}
+    result match {
+      case Failure(exception) => throw exception
+      case Success(value) =>
+       value shouldBe Option(("qqq",List("a(b(c),d(e))","f","g"),"ppp"))
+    }
+  }
+
+  it should "support compplex arguments with spaces" in {
+    val source = "{ qqq | a(b( c ), d(e )) f g | ppp}"
+    val lexer = new Lexer(source)
+    val parser = new GeneratedPEGParser(lexer)
+    val result = parser.Action().map{PEGGenerator.flattenAction}
+    result match {
+      case Failure(exception) => throw exception
+      case Success(value) =>
+        value shouldBe Option(("qqq",List("a(b(c),d(e))","f","g"),"ppp"))
     }
   }
 

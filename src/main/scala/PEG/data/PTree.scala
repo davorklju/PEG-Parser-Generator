@@ -1,4 +1,4 @@
-package PEG.ast
+package PEG.data
 
 sealed trait PTree
 
