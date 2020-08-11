@@ -59,7 +59,7 @@ object Expr extends ParserGenerator {
     val parser = new GeneratedPEGParser(lexer)
     val g = parser.Grammar().map(PEGGenerator.toAst)
     if(g.isFailure) println("parse failed")
-    g.foreach(this.genParserToFile)
+    g.foreach(this.genParserToFile(_))
     println("done")
   }
 

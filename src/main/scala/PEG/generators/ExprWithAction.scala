@@ -1,6 +1,6 @@
 package PEG.generators
 
-import PEG.PEGParser.GeneratedPEGParser
+import PEG.PEGParser.{GeneratedPEGParser}
 import PEG.lexparse.Lexer
 import PEG.generators._
 
@@ -78,35 +78,3 @@ object ExprWithAction extends ParserGenerator {
 
 }
 
-object QQQ extends App {
-  val srcs = List( "10","2 + 3","3 * 4","1 + 2 * 3","(1 + 2) * 3"
-                 , "-10","2 - 3","3 * -4","-1 + 2","2 - -2"
-                 , "-1 * -1"
-                 ,  "12 + -(3 * 4)"
-              )
-
-  srcs.foreach{ source =>
-    val lexer = new Lexer(source)
-    val parser = new ExprWithActionGenerated(lexer)
-    val result = parser.Expr()
-
-    result match {
-      case Failure(exception) => throw exception
-      case Success(value) =>
-        println(s"$source = $value")
-    }
-  }
-
-  val srcsQ = List("1","1 + 2","1 + 2 + 3", "1 + 2 + 3 + 4")
-  srcsQ.foreach{ source =>
-    val lexer = new Lexer(source)
-    val parser = new ExprWithActionGenerated(lexer)
-    val result = parser.QQQ()
-
-    result match {
-      case Failure(exception) => throw exception
-      case Success(value) =>
-        println(s"$source = $value")
-    }
-  }
-}

@@ -8,7 +8,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.util.{Failure, Success, Try}
 
-class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
+class GeneratedPEGActionParserTest extends AnyFlatSpec with Matchers {
 
   "EndOfFile" should "return Success(()) when called on am empty string" in {
     val source = ""
@@ -165,7 +165,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "abc123_+"
     val parser = mkParser(source)
     for (c <- source) {
-      parser.Char().map{PEGGenerator.flattenChars} shouldBe Try(List(c))
+      parser.Char() shouldBe Try(c)
     }
     assert(parser.EndOfFile().isSuccess)
   }
@@ -174,7 +174,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "\\n\\t\\[\\]\\\\"
     val parser = mkParser(source)
     for (c <- List('\n', '\t', '[', ']', '\\')) {
-      parser.Char().map(PEGGenerator.flattenChars) shouldBe Try(List(c))
+      parser.Char() shouldBe Try(c)
     }
     assert(parser.EndOfFile().isSuccess)
   }
@@ -189,7 +189,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "abc123\\n\\t\\["
     val parser = mkParser(source)
     for (c <- List('a', 'b', 'c', '1', '2', '3', '\n', '\t', '[')) {
-      parser.Char().map(PEGGenerator.flattenChars) shouldBe Try(List(c))
+      parser.Char() shouldBe Try(c)
     }
     assert(parser.EndOfFile().isSuccess)
   }
@@ -205,8 +205,8 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "abc"
     val parser = mkParser(source)
     for (c <- source) {
-      val charClass: Try[List[Char]] = parser.Range().map(PEGGenerator.flattenChars)
-      charClass shouldBe Try(List(c))
+      val charClass: Try[Set[Char]] = parser.Range()
+      charClass shouldBe Try(Set(c))
     }
     assert(parser.EndOfFile().isSuccess)
   }
@@ -214,20 +214,20 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "support ranges" in {
     val source = "a-c2-3"
     val parser = mkParser(source)
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(('a' to 'c').toList)
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(('2' to '3').toList)
+    parser.Range() shouldBe Try(('a' to 'c').toSet)
+    parser.Range() shouldBe Try(('2' to '3').toSet)
     assert(parser.EndOfFile().isSuccess)
   }
 
   it should "support mix of characters and ranges" in {
     val source = "ab0-5cd7-9"
     val parser = mkParser(source)
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(List('a'))
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(List('b'))
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(('0' to '5').toList)
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(List('c'))
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(List('d'))
-    parser.Range().map(PEGGenerator.flattenChars) shouldBe Try(('7' to '9').toList)
+    parser.Range() shouldBe Try(Set('a'))
+    parser.Range() shouldBe Try(Set('b'))
+    parser.Range() shouldBe Try(('0' to '5').toSet)
+    parser.Range() shouldBe Try(Set('c'))
+    parser.Range() shouldBe Try(Set('d'))
+    parser.Range() shouldBe Try(('7' to '9').toSet)
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -241,21 +241,21 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   "Class" should "parse empty class" in {
     val source = "[]"
     val parser = mkParser(source)
-    parser.Class().map(PEGGenerator.tree2ast) shouldBe Try(Class(Set.empty))
+    parser.CharClass() shouldBe Try(Class(Set.empty))
     assert(parser.EndOfFile().isSuccess)
   }
 
   it should "parse escape characters" in {
     val source = "[\\n\\t\\[\\]]"
     val parser = mkParser(source)
-    parser.Class().map(PEGGenerator.tree2ast) shouldBe Try( Class( "\t\n[]".toSet ) )
+    parser.CharClass() shouldBe Try( Class( "\t\n[]".toSet ) )
     assert( parser.EndOfFile().isSuccess )
   }
 
   it should "parse singe char classes" in {
     val source = "[abc123]"
     val parser = mkParser(source)
-    parser.Class().map(PEGGenerator.tree2ast) shouldBe Try(Class(Set('a', 'b', 'c', '1', '2', '3')))
+    parser.CharClass() shouldBe Try(Class(Set('a', 'b', 'c', '1', '2', '3')))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -263,7 +263,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "[a-z0-9]"
     val parser = mkParser(source)
     val expected = 'a'.to('z').toSet union '0'.to('9').toSet
-    parser.Class().map(PEGGenerator.tree2ast) shouldBe Try(Class(expected))
+    parser.CharClass() shouldBe Try(Class(expected))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -274,14 +274,14 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       'a'.to('z').toSet union
         '0'.to('9').toSet union
         "+_()".toSet
-    parser.Class().map(PEGGenerator.tree2ast) shouldBe Try(Class(expected))
+    parser.CharClass() shouldBe Try(Class(expected))
     assert(parser.EndOfFile().isSuccess)
   }
 
   it should "be followed by spaces" in {
     val source = "[]    "
     val parser = mkParser(source)
-    parser.Class()
+    parser.CharClass()
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -289,7 +289,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     for (q <- List("'", "\"", "`")) {
       val source = s"$q$q"
       val parser = mkParser(source)
-      parser.Literal().map(PEGGenerator.tree2ast) shouldBe Try(Lit(List.empty))
+      parser.Literal() shouldBe Try(Lit(List.empty))
     }
   }
 
@@ -302,7 +302,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     for ((source, expected) <- cases) {
       println(source)
       val parser = mkParser(source)
-      parser.Literal().map(PEGGenerator.tree2ast) shouldBe Try(Lit(expected))
+      parser.Literal() shouldBe Try(Lit(expected))
       assert(parser.EndOfFile().isSuccess)
       println("----")
     }
@@ -317,21 +317,21 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "be length 1" in {
     val source = "A"
     val parser = mkParser(source)
-    parser.Identifier().map(PEGGenerator.tree2ast) shouldBe Try(Var("A"))
+    parser.Identifier() shouldBe Try(Var("A"))
     assert(parser.EndOfFile().isSuccess)
   }
 
   it should "be length any length > 1" in {
     val source = "_12Abc"
     val parser = mkParser(source)
-    parser.Identifier().map(PEGGenerator.tree2ast) shouldBe Try(Var(source))
+    parser.Identifier() shouldBe Try(Var(source))
     assert(parser.EndOfFile().isSuccess)
   }
 
   "Primany" should "be a dot `.`" in {
     val source = "."
     val parser = mkParser(source)
-    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Any)
+    parser.Primary() shouldBe Try(PEG.data.Any)
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -339,7 +339,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val source = "[+/_()0-9\\]]"
     val parser = mkParser(source)
     val expected = "+/_()]".toSet union '0'.to('9').toSet
-    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Class(expected))
+    parser.Primary() shouldBe Try(PEG.data.Class(expected))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -347,7 +347,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     val token = "hello world"
     for (p <- "'`\"".toList) {
       val parser = mkParser(s"$p$token$p")
-      parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(Lit(token.toSeq))
+      parser.Primary() shouldBe Try(Lit(token.toSeq))
       assert(parser.EndOfFile().isSuccess)
     }
   }
@@ -355,16 +355,14 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "be a Ident" in {
     val source = "Expr"
     val parser = mkParser(source)
-    parser.Primary().map(PEGGenerator.tree2ast) shouldBe Try(Var(source))
+    parser.Primary() shouldBe Try(Var(source))
     assert(parser.EndOfFile().isSuccess)
   }
 
   it should "be a paren expr" in {
     val source = "( `aaa` ) "
     val parser = mkParser(source)
-    val triedAst: Try[PEGAst] =
-      parser.Primary().map(PEGGenerator.tree2ast)
-    triedAst shouldBe Try(Lit("aaa".toList))
+    parser.Primary() shouldBe Try(Lit("aaa".toList))
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -389,7 +387,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
     for( (src,expected) <- ps ){
       val parser = mkParser(src)
-      parser.Suffix().map{PEGGenerator.tree2ast} shouldBe Try(expected)
+      parser.Suffix() shouldBe Try(expected)
       assert( parser.EndOfFile().isSuccess )
     }
   }
@@ -404,7 +402,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
     for( (src,expected) <- ps ){
       val parser = mkParser(src)
-      parser.Suffix().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+      parser.Suffix() shouldBe Try(expected)
       assert( parser.EndOfFile().isSuccess )
     }
   }
@@ -418,7 +416,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
     for( (src,expected) <- ps ){
       val parser = mkParser(src)
-      parser.Suffix().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+      parser.Suffix() shouldBe Try(expected)
       assert( parser.EndOfFile().isSuccess )
     }
   }
@@ -431,7 +429,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
     for((src,expected) <- ps){
       val parser = mkParser(src)
-      parser.Prefix().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+      parser.Prefix() shouldBe Try(expected)
       assert( parser.EndOfFile().isSuccess )
     }
   }
@@ -444,14 +442,14 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
     for((src,expected) <- ps){
       val parser = mkParser(src)
-      parser.Prefix().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+      parser.Prefix() shouldBe Try(expected)
       assert( parser.EndOfFile().isSuccess )
     }
   }
 
   "Sequence" should "be Empty on empty input" in {
     val parser = mkParser("    ")
-    parser.Sequence().map(PEGGenerator.tree2ast) shouldBe Try(Empty)
+    parser.Sequence() shouldBe Try(Empty)
     parser.Spacing()
     assert(parser.EndOfFile().isSuccess)
   }
@@ -459,25 +457,25 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "not have a Seq wrapper for singe element seqs" in {
     val source = "Expr"
     val parser = mkParser(source)
-    parser.Sequence().map(PEGGenerator.tree2ast) shouldBe Try(Var(source))
+    parser.Sequence() shouldBe Try(Var(source))
   }
 
   it should "support multiple expressions" in {
     val source = "Fact `+` Expr  "
     val parser = mkParser(source)
     val expected = Cat(Seq(Var("Fact"), Lit(List('+')), Var("Expr") ))
-    parser.Sequence().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+    parser.Sequence() shouldBe Try(expected)
   }
 
   "Expression" should "Empty on empty string" in {
     val parser = mkParser("    ")
-    parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(PEG.data.Empty)
+    parser.Expression() shouldBe Try(PEG.data.Empty)
   }
 
   it should "have no alt wrap for 1 alt" in {
     val source = "Expr   "
     val parser = mkParser(source)
-    parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(Var("Expr"))
+    parser.Expression() shouldBe Try(Var("Expr"))
     assert(parser.EndOfFile().isSuccess)
   }
 
@@ -493,10 +491,10 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         PEG.data.Empty
       ) )
 
-    parser.Expression().map(PEGGenerator.tree2ast) shouldBe Try(expected)
+    parser.Expression() shouldBe Try(expected)
     assert(parser.EndOfFile().isSuccess)
   }
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   "Action" should "be between { and } and have 2 seperators |" in {
     val source = "{int|x y| x + y}"
     val lexer = new Lexer(source)
@@ -531,7 +529,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     result match {
       case Failure(exception) => throw exception
       case Success(value) =>
-       value shouldBe Option(("qqq",List("a(b(c),d(e))","f","g"),"ppp"))
+        value shouldBe Option(("qqq",List("a(b(c),d(e))","f","g"),"ppp"))
     }
   }
 
@@ -554,11 +552,11 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       "[a-z]?" -> Optional(Class('a'.to('z').toSet)),
       "&(!P+)" -> PosLook(NegLook(Plus(Var("P")))),
       "x `hello` &(!P+) [a-z]?" -> Cat(List(
-            Var("x"),
-            Lit("hello".toSeq),
-            PosLook(NegLook(Plus(Var("P")))),
-            Optional(Class('a'.to('z').toSet))
-          ))
+        Var("x"),
+        Lit("hello".toSeq),
+        PosLook(NegLook(Plus(Var("P")))),
+        Optional(Class('a'.to('z').toSet))
+      ))
     )
     for( (source,expected) <- mp ){
       val lexer = new Lexer(source)
@@ -577,9 +575,9 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       "x {p | q | r}" -> Action(Var("x"),"p",List("q"),"r"),
       "'hello' {p||}" -> Action(Lit("hello".toList),"p",Nil,""),
       "[a-z]? {QQQ|asd|123}" -> Action(Optional(Class('a'.to('z').toSet))
-                    ,"QQQ",List("asd"),"123"),
+        ,"QQQ",List("asd"),"123"),
       "&(!P+) {  z  ||}" -> Action(PosLook(NegLook(Plus(Var("P"))))
-                    , "z",Nil,""),
+        , "z",Nil,""),
       "x `hello` &(!P+) [a-z]? {string| x h p a| concat(x,h,p,a) }" -> Action(Cat(List(
         Var("x"),
         Lit("hello".toSeq),
@@ -606,7 +604,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected =
-      Definition("Expr",false,
+      Definition("Expr",memo = false,
         Alt(List(
           Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
           Var("Int")
@@ -615,7 +613,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
 
     val parser = mkParser(source)
 
-    parser.Definition().map(PEGGenerator.tree2Def) shouldBe Try(expected)
+    parser.Definition() shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -627,7 +625,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected =
-      Definition("Expr",false,
+      Definition("Expr",memo = false,
         Alt(List(
           Cat(List(Var("Expr"),Lit(List('+')),Var("Expr"))),
           Var("Int"),
@@ -637,7 +635,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
 
     val parser = mkParser(source)
 
-    parser.Definition().map(PEGGenerator.tree2Def) shouldBe Try(expected)
+    parser.Definition() shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -649,7 +647,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
       PEGGenerator.tree2Def(x)
     }
 
-    result shouldBe Try( Definition("E",true,Var("F")) )
+    result shouldBe Try( Definition("E",memo = true,Var("F")) )
     assert( parser.EndOfFile().isSuccess )
   }
 
@@ -662,7 +660,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected = List(
-      Definition("E",false,
+      Definition("E",memo = false,
         Alt(List(
           Cat(List(Var("F"),Lit(List('+')),Var("E"))),
           Var("F")
@@ -671,7 +669,7 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
     )
 
     val parser = mkParser(source)
-    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
+    parser.Grammar() shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
@@ -691,25 +689,25 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
         |""".stripMargin
 
     val expected = List(
-      Definition("E",false,
+      Definition("E",memo = false,
         Alt(List(
           Cat(List(Var("F"),Lit(List('+')),Var("E"))),
           Var("F")
         ))
       ) ,
-      Definition("F",false,
+      Definition("F",memo = false,
         Alt(List(
           Cat(List(Var("I"),Lit(List('*')),Var("F"))),
           Var("I")
         ))
       ) ,
-      Definition("I",false,
+      Definition("I",memo = false,
         Plus(Class('0'.to('9').toSet))
       )
     )
 
     val parser = mkParser(source)
-    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
+    parser.Grammar() shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
@@ -717,61 +715,61 @@ class GeneratedPEGParserTest extends AnyFlatSpec with Matchers {
   it should "support actions on every toplevel alt" in {
     val source =
       """
-        | E <- F `+` E {int|f e| f + e} # addition
-        |    / F
+        |E <- F `+` E {int|f e| f + e} # addition
+        |   / F
+        |F <- I `*` F {int| i f | i * f } #multiplication
+        |   / I
         |
-        | F <- I `*` F {int | i f | i * f } #multiplication
-        |    / I
+        |I <- [0-9]+ {int| str| flattenNoWS(str).toInt } # an int
         |
-        | I <- [0-9]+ {int| str | flattenNoWS(str).toInt } # an int
-        |
-        | # akjsdlkjasldjlasjk
+        |# akjsdlkjasldjlasjk
         |
         |""".stripMargin
 
     val expected = List(
-      Definition("E",false,
+      Definition("E",memo = false,
         Alt(List(
           Action( Cat(List(Var("F"),Lit(List('+')),Var("E")))
-                ,"int",List("f","e"),"f + e"),
+            ,"int",List("f","e"),"f + e"),
           Var("F")
         ))
       ) ,
-      Definition("F",false,
+      Definition("F",memo = false,
         Alt(List(
           Action( Cat(List(Var("I"),Lit(List('*')),Var("F")))
-                ,"int", List("i","f"),"i * f " ),
+            ,"int", List("i","f"),"i * f " ),
           Var("I")
         ))
       ) ,
-      Definition("I",false,
+      Definition("I",memo = false,
         Action( Plus(Class('0'.to('9').toSet))
           , "int",List("str"),"flattenNoWS(str).toInt ")
       )
     )
 
     val parser = mkParser(source)
-    parser.Grammar().map(PEGGenerator.tree2grammar) shouldBe Try(expected)
+    parser.Grammar() shouldBe Try(expected)
     assert( parser.EndOfFile().isSuccess)
   }
 
 
   it should "support (a^n)(b^n)(c^n)" in {
     val source =
-      """
-        | A <- 'a' A 'b' /
+      """ A <- 'a' A 'b' /
         | B <- 'b' B 'c' /
         | D <- &(A !'b') B
         |""".stripMargin
 
     val parser = mkParser(source)
-    assert( parser.Grammar().isSuccess )
+    val res = parser.Grammar()
+    val qqq = res.get
+    assert( res.isSuccess )
     assert( parser.EndOfFile().isSuccess )
   }
 
   private def mkParser(source: String) = {
     val lexer = new Lexer(source)
-    val parser = new GeneratedPEGParser(lexer)
+    val parser = new GeneratedPEGActionParser(lexer)
     parser
   }
 }

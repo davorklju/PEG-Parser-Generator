@@ -122,7 +122,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
                 }
             }
 
-            var buf_64 = ArrayBuffer.empty[PTree]
+            var buf_64 = ArrayBuffer.empty[Any]
             var pos_65 = mark
             var res_66 = subMatch_67
             res_66.recover { _ => reset(pos_65) }
@@ -132,7 +132,7 @@ class ExprGenerated(lexer: Lexer) extends Parser(lexer) {
               res_66 = subMatch_67
               res_66.recover { _ => reset(pos_65) }
             }
-            Try(PBranch("catPart_62", buf_64.toSeq))
+            Try(PBranch("catPart_62", buf_64.toSeq.map{_.asInstanceOf[PTree]}))
           }
         } yield PBranch("catPart_57", Seq(catPart_61, catPart_62))
         res_60.recoverWith { case p: ParseError[Char] =>

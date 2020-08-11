@@ -1,8 +1,10 @@
-package PEG.generators
+package PEG.PEGParser
 
-import PEG.lexparse.{Lexer, Parser}
-import PEG.data.implicits._
 import PEG.data._
+import PEG.data.implicits._
+import PEG.generators._
+import PEG.lexparse.{Lexer, Parser}
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Try}

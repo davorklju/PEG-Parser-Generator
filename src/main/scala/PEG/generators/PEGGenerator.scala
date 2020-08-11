@@ -59,18 +59,6 @@ object PEGGenerator extends ParserGenerator {
       case PEmpty => throw new Error()
       case PLeaf(_) => throw new Error()
 
-      case PBranch("ExprPart", List(seq,act)) =>
-        val ast = tree2ast(seq)
-        flattenAction(act)
-          .map{ case (a,b,c) => Action(ast,a,b,c)}
-          .getOrElse(ast)
-
-      case PBranch("ExprWithAction", List(e0, PBranch(_,ls))) =>
-        val es = ls.toList.map {
-          case PBranch(_,List (PBranch("SLASH", _), e)) => e
-        }
-        if(es.isEmpty) tree2ast(e0)
-        else Alt((e0 :: es).map(tree2ast))
 
       case PBranch("Expression", List(e0, PBranch(_,ls))) =>
         val es = ls.toList.map {
@@ -79,11 +67,15 @@ object PEGGenerator extends ParserGenerator {
         if(es.isEmpty) tree2ast(e0)
         else Alt((e0 :: es).map(tree2ast))
 
-      case PBranch("Sequence",ss) => ss match {
-        case Nil => PEG.data.Empty
-        case x :: Nil => tree2ast(x)
-        case _  => Cat(ss.map(tree2ast))
-      }
+      case PBranch("Sequence",List(PBranch(_, ss),act)) =>
+        val ast = ss match {
+          case Nil => PEG.data.Empty
+          case x :: Nil => tree2ast(x)
+          case _  => Cat(ss.map(tree2ast))
+        }
+        flattenAction(act)
+          .map{ case (a,b,c) => Action(ast,a,b,c)}
+          .getOrElse(ast)
 
       case PBranch("Prefix",List(p,suf)) =>
         val ast = tree2ast(suf)
@@ -233,20 +225,10 @@ object PEGGenerator extends ParserGenerator {
       | # Heierarchical syntax
       |
       | Grammar   <- Spacing Definition+ EndOfFile
-      | Definition <- Identifier STAR? LEFTARROW ExprWithAction
-      |
-      | ExprWithAction <- ExprPart (SLASH ExprPart)*
-      | ExprPart       <- Sequence Action?
-      |
-      | #
-      | # E <- S E2 { List[PEGAst] | x xs | x :: xs }
-      | #
-      | # E2 <- E {List[PEGAst]| xs | xs }
-      | #    /   {List[PEGAst]|    | [] }
-      | #
+      | Definition <- Identifier STAR? LEFTARROW Expression
       |
       | Expression <- Sequence (SLASH Sequence)*
-      | Sequence   <- Prefix*
+      | Sequence   <- Prefix* Action?
       | Prefix     <- (AND / NOT)? Suffix
       | Suffix     <- Primary (QUESTION / STAR / PLUS)?
       | Primary*    <- Identifier !(STAR? LEFTARROW)

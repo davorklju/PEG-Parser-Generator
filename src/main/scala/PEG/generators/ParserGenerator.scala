@@ -4,6 +4,7 @@ import java.io.{File, PrintWriter}
 
 import PEG.data._
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait ParserGenerator {
@@ -13,9 +14,19 @@ trait ParserGenerator {
 
   ///////////////////////////////////////////////////////////////////////
 
-  def genParserToFile( grammer: List[Definition] ): Unit = {
+  val toplevelTypes = mutable.HashMap.empty[String,String]
+
+  def genParserToFile( grammer: List[Definition] , extraImports: List[String] = Nil): Unit = {
     val str = pack.replaceAll("\\.", "\\\\")
     val fullPath = s"$path\\$str\\$name.scala"
+
+    for( d <- grammer){
+      val name = d.name
+      val ast = d.ast
+      val typeOf = getTypes(ast)
+      if( !typeOf.isEmpty )
+        toplevelTypes(name) = typeOf.head
+    }
 
     val file = new File(fullPath)
     if(!file.exists()){
@@ -23,7 +34,7 @@ trait ParserGenerator {
     }
     val out = new PrintWriter(file)
 
-    genParser(grammer).foreach{ x =>
+    genParser(grammer,extraImports).foreach{ x =>
       out.println(x)
     }
 
@@ -55,7 +66,7 @@ trait ParserGenerator {
     }
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  private def genParser( grammer: List[Definition] ): ArrayBuffer[String] = {
+  private def genParser( grammer: List[Definition] , extraIports: List[String]): ArrayBuffer[String] = {
     val buf = ArrayBuffer.empty[String]
 
     buf += s"package $pack"
@@ -69,6 +80,7 @@ trait ParserGenerator {
         |import scala.util.{Failure, Try}
         |
         |""".stripMargin
+    extraIports.foreach{ x => buf += s"import $x"}
 
     buf += s"class $name(lexer: Lexer) extends Parser(lexer){"
     for( Definition(rule,memo,ast) <- grammer ) {
@@ -93,16 +105,26 @@ trait ParserGenerator {
   private def getTypes(ast: PEGAst): Set[String] =
     ast match {
       case Action(_, retType, _, _) => Set(retType)
-
-      case Star(ast) => getTypes(ast)
-      case Plus(ast) => getTypes(ast)
-      case PosLook(ast) => getTypes(ast)
-      case NegLook(ast) => getTypes(ast)
-      case Optional(ast) => getTypes(ast)
-
-      case Cat(asts) => asts.map{getTypes}.fold(Set.empty){_ union _}
       case Alt(asts) => asts.map{getTypes}.fold(Set.empty){_ union _}
-
+      case Var(name) => toplevelTypes.get(name).map(Set(_)).getOrElse(Set.empty)
+      case Optional(ast) =>
+        val typeOf = getTypes(ast)
+        if(typeOf.isEmpty || typeOf.contains("PTree"))
+          Set("PTree")
+        else
+          Set(s"Option[${typeOf.head}]")
+      case Star(ast) =>
+        val typeOf = getTypes(ast)
+        if(typeOf.isEmpty || typeOf.contains("PTree"))
+          Set("PTree")
+        else
+          Set(s"List[${typeOf.head}]")
+      case Star(ast) =>
+        val typeOf = getTypes(ast)
+        if(typeOf.isEmpty || typeOf.contains("PTree"))
+          Set("PTree")
+        else
+          Set(s"List[${typeOf.head}]")
       case _ => Set.empty
     }
 
@@ -168,12 +190,30 @@ trait ParserGenerator {
       case NegLook(ast) => genNeg(name,ast)
 
       case Plus(ast) =>
-        val newAst = Cat(Seq( ast, Star(ast) ))
-        genAst(name,newAst)
+        val typeOf = getTypes(ast)
+        if(typeOf.isEmpty || typeOf.head == "PTree") {
+          val newAst = Cat(Seq( ast, Star(ast) ))
+          genAst(name,newAst)
+        } else {
+          val x = freshVar("ast0")
+          val xs = freshVar("asts")
+          val astBody = Cat(Seq( ast, Star(ast) ))
+          val newAst = Action(astBody,s"List[${typeOf.head}]",List(x,xs),s"$x :: $xs")
+          genAst(name,newAst)
+        }
 
       case Optional(ast) =>
-        val newAst = Alt(Seq( ast, Empty ))
-        genAst(name,newAst)
+        val typeOf = getTypes(ast)
+        if(typeOf.isEmpty || typeOf.head == "PTree") {
+          val newAst = Alt(Seq( ast, Empty ))
+          genAst(name,newAst)
+        } else {
+          val arg = freshVar("arg")
+          val astSucc = Action(ast,s"Option[${typeOf.head}]",List(arg),s"Option($arg)")
+          val astFail = Action(Empty,s"Option[${typeOf.head}]",List(), s"Option.empty")
+          genAst(name,Alt(Seq(astSucc,astFail)))
+        }
+
 
       case PosLook(ast) =>
         val newAst = NegLook(NegLook(ast))
@@ -374,21 +414,45 @@ trait ParserGenerator {
         buf += "}"
     }
 
-    buf += s"var $parts = ArrayBuffer.empty[PTree]"
-    buf += s"var $pos = mark"
-    buf += s"var $res = $subMatch"
-    buf += s"$res.recover{ _ => reset($pos) }"
+    val subType = getTypes(ast)
 
-    buf += s"while($res.isSuccess){"
-    buf += s"$parts += $res.get"
+    if(subType.isEmpty || subType.head == "PTree"){
+      buf += s"var $parts = ArrayBuffer.empty[PTree]"
+      buf += s"var $pos = mark"
+      buf += s"var $res = $subMatch"
+      buf += s"$res.recover{ _ => reset($pos) }"
 
-    buf += s"$pos = mark"
-    buf += s"$res = $subMatch"
-    buf += s"$res.recover{ _ => reset($pos) }"
+      buf += s"while($res.isSuccess){"
+      buf += s"$parts += $res.get"
 
-    buf += "}"
+      buf += s"$pos = mark"
+      buf += s"$res = $subMatch"
+      buf += s"$res.recover{ _ => reset($pos) }"
 
-    buf += s""" Try(PBranch("$name",$parts.toSeq)) """
+      buf += "}"
+
+      buf += s""" Try(PBranch("$name",$parts.toSeq)) """
+    }
+    else {
+      val t = subType.head
+
+      buf += s"var $parts = ArrayBuffer.empty[$t]"
+      buf += s"var $pos = mark"
+      buf += s"var $res = $subMatch"
+      buf += s"$res.recover{ _ => reset($pos) }"
+
+      buf += s"while($res.isSuccess){"
+      buf += s"$parts += $res.get"
+
+      buf += s"$pos = mark"
+      buf += s"$res = $subMatch"
+      buf += s"$res.recover{ _ => reset($pos) }"
+
+      buf += "}"
+
+      buf += s""" Try( $parts.toList )"""
+    }
+
 
     buf
   }
@@ -434,7 +498,7 @@ trait ParserGenerator {
         buf += s"val $pos = mark"
         buf += s"val $res = for{"
         appendToSeq(buf,args.zip(asts))
-        buf += s"} yield ($body)"
+        buf += s"} yield {$body}"
 
         buf += s"$res.recoverWith{ case p: ParseError[Char] => "
         buf += s"reset($pos)"
@@ -460,3 +524,34 @@ trait ParserGenerator {
     }
   }
 }
+
+/***
+
+ Lit: List[Char]
+
+'abc' = for{
+      _ <- expect('a')
+      _ <- expect('b')
+      _ <- expect('c')
+   } yield 'abc'.List
+
+ 'abc' { x | f(x) } = for{
+        _ <- expect('a')
+        _ <- expect('b')
+        _ <- expect('c')
+        val x = 'abc'.toList
+    } yield  f(x)
+
+
+ --------------------------------
+
+ 'abc'*
+
+  def sub = for{
+    _ <- expect('a')
+    _ <- expect('b')
+  }
+
+
+
+***/
